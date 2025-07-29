@@ -90,10 +90,10 @@ export default function Home() {
             </Link>
 
             {/* Stock Management */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            <Link href="/stocks" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
               <Package className="w-5 h-5 mr-3 text-amber-500" />
               Gestion des Stocks
-            </a>
+            </Link>
 
             {/* Sales & Purchases */}
             <Link href="/finances" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">

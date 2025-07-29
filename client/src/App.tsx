@@ -13,6 +13,7 @@ import Enclos from "@/pages/Enclos";
 import Reproduction from "@/pages/Reproduction";
 import Finances from "@/pages/Finances";
 import Sante from "@/pages/Sante";
+import Stocks from "@/pages/Stocks";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -30,6 +31,7 @@ function Router() {
           <Route path="/reproduction" component={Reproduction} />
           <Route path="/finances" component={Finances} />
           <Route path="/sante" component={Sante} />
+          <Route path="/stocks" component={Stocks} />
         </>
       ) : (
         <>

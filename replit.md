@@ -5,12 +5,13 @@
 LAPGEST-PRO 2.0 is a comprehensive rabbit farm management system built with a modern full-stack architecture. The application provides complete management capabilities for rabbit breeding operations, including animal tracking, breeding records, health monitoring, financial management, and genealogy tracking.
 
 ### Current Status (July 29, 2025)
-Five core modules are now functional:
+Six core modules are now functional:
 - **Lapins**: Complete rabbit management with individual profiles, health status, and genealogy tracking
 - **Enclos**: Housing management with real-time occupancy monitoring
 - **Reproduction**: Breeding records, mating management, and birth tracking
 - **Finances**: Sales and expenses tracking with financial dashboards
 - **Santé**: Health management with medical records, treatments, and vaccination schedules
+- **Stocks**: Inventory management with stock levels, alerts, and movement tracking
 
 ## User Preferences
 
