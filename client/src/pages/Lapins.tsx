@@ -68,7 +68,7 @@ export default function Lapins() {
     },
   });
 
-  const filteredLapins = lapins.filter((lapin: any) => {
+  const filteredLapins = (lapins as any[]).filter((lapin: any) => {
     const matchesSearch = lapin.identifiant?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
     const matchesStatus = statusFilter === "all" || lapin.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -140,7 +140,7 @@ export default function Lapins() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{lapins.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{(lapins as any[]).length}</p>
               </div>
             </div>
           </CardContent>
@@ -155,7 +155,7 @@ export default function Lapins() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Reproducteurs</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {lapins.filter((l: any) => l.status === "reproducteur").length}
+                  {(lapins as any[]).filter((l: any) => l.status === "reproducteur").length}
                 </p>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function Lapins() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Engraissement</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {lapins.filter((l: any) => l.status === "engraissement").length}
+                  {(lapins as any[]).filter((l: any) => l.status === "engraissement").length}
                 </p>
               </div>
             </div>
@@ -187,7 +187,7 @@ export default function Lapins() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">À vendre</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {lapins.filter((l: any) => l.status === "stock_a_vendre").length}
+                  {(lapins as any[]).filter((l: any) => l.status === "stock_a_vendre").length}
                 </p>
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function Lapins() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Enclos:</span>
                       <span className="font-medium">
-                        {enclos.find((e: any) => e.id === lapin.enclosId)?.nom || lapin.enclosId}
+                        {(enclos as any[]).find((e: any) => e.id === lapin.enclosId)?.nom || lapin.enclosId}
                       </span>
                     </div>
                   )}

@@ -108,10 +108,10 @@ export default function Home() {
             </Link>
 
             {/* Expenses */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            <Link href="/depenses" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
               <Receipt className="w-5 h-5 mr-3 text-orange-500" />
               Dépenses
-            </a>
+            </Link>
 
             {/* Banking */}
             <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
