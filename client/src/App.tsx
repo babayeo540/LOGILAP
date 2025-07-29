@@ -12,6 +12,7 @@ import Lapins from "@/pages/Lapins";
 import Enclos from "@/pages/Enclos";
 import Reproduction from "@/pages/Reproduction";
 import Finances from "@/pages/Finances";
+import Sante from "@/pages/Sante";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,6 +29,7 @@ function Router() {
           <Route path="/enclos" component={Enclos} />
           <Route path="/reproduction" component={Reproduction} />
           <Route path="/finances" component={Finances} />
+          <Route path="/sante" component={Sante} />
         </>
       ) : (
         <>

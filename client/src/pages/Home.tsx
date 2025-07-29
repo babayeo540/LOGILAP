@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "wouter";
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -83,10 +84,10 @@ export default function Home() {
             </div>
 
             {/* Health Management */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            <Link href="/sante" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
               <Stethoscope className="w-5 h-5 mr-3 text-red-500" />
               Santé & Soins
-            </a>
+            </Link>
 
             {/* Stock Management */}
             <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
