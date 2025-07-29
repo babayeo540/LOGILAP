@@ -32,8 +32,9 @@ import {
   PiggyBank,
   Wallet
 } from "lucide-react";
-import CompteForm from "../components/CompteForm";
-import TransactionForm from "../components/TransactionForm";
+import CompteForm from "@/components/CompteForm";
+import TransactionForm from "@/components/TransactionForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Tresorerie() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -230,14 +231,20 @@ export default function Tresorerie() {
                                             .reduce((sum, t) => sum + t.montant, 0);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Trésorerie & Banque</h1>
-          <p className="text-gray-600">Gérez vos comptes et transactions financières</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="tresorerie"
+        moduleTitle="Trésorerie & Banque"
+        moduleDescription="Gérez vos comptes et transactions financières"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <div className="flex gap-2">
           <Button 
             onClick={() => setShowTransactionForm(true)}
             className="bg-primary-600 hover:bg-primary-700"
@@ -252,8 +259,8 @@ export default function Tresorerie() {
             <Plus className="w-4 h-4 mr-2" />
             Compte
           </Button>
+          </div>
         </div>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -707,6 +714,7 @@ export default function Tresorerie() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

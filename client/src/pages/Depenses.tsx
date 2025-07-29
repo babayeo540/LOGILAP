@@ -29,6 +29,7 @@ import {
   Euro
 } from "lucide-react";
 import DepenseForm from "../components/DepenseForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Depenses() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -186,21 +187,27 @@ export default function Depenses() {
   }).filter(cat => cat.total > 0).sort((a, b) => b.total - a.total);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Dépenses</h1>
-          <p className="text-gray-600">Suivez toutes les sorties d'argent de votre ferme</p>
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="depenses"
+        moduleTitle="Gestion des Dépenses"
+        moduleDescription="Suivez toutes les sorties d'argent de votre ferme"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <Button 
+            onClick={() => setShowDepenseForm(true)}
+            className="bg-primary-600 hover:bg-primary-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nouvelle Dépense
+          </Button>
         </div>
-        <Button 
-          onClick={() => setShowDepenseForm(true)}
-          className="bg-primary-600 hover:bg-primary-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nouvelle Dépense
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -508,6 +515,7 @@ export default function Depenses() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
