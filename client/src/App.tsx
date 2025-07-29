@@ -8,6 +8,8 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
+import Lapins from "@/pages/Lapins";
+import Enclos from "@/pages/Enclos";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -20,6 +22,8 @@ function Router() {
       ) : isAuthenticated ? (
         <>
           <Route path="/" component={Home} />
+          <Route path="/lapins" component={Lapins} />
+          <Route path="/enclos" component={Enclos} />
         </>
       ) : (
         <>
