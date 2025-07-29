@@ -1,0 +1,198 @@
+Bien sûr \! C'est une excellente idée de consolider toutes les fonctionnalités discutées et de les intégrer dans un prompt unique et puissant pour le développement de **LAPGEST-PRO 2.0**.
+
+Ce prompt inclut toutes les mises à jour et les points d'insistance que nous avons ajoutés, garantissant que rien ne sera omis lors de la mise en place.
+
+-----
+
+## Prompt de Développement Complet pour LAPGEST-PRO 2.0
+
+```
+**Nom du Projet :** LAPGEST-PRO 2.0
+
+**Contexte Général :**
+Tu vas concevoir, développer et configurer un système logiciel complet et multi-utilisateur pour la gestion intégrale d'une ferme cunicole. Ce logiciel, nommé **LAPGEST-PRO 2.0**, doit couvrir tous les aspects de l'élevage de lapins, de la reproduction à la vente, en passant par la gestion de la santé, des stocks, du personnel, et une gestion financière détaillée incluant la trésorerie.
+
+**Exigence Fondamentale : Implémentation STRICTE et COMPLÈTE du Cahier des Charges Finalisé**
+Ton objectif principal est d'implémenter **sans aucune omission** et avec la plus grande fidélité le **cahier des charges consolidé et détaillé** fourni ci-après. Chaque module, chaque fonctionnalité, chaque sous-point, chaque calcul, chaque alerte et chaque type de document (notamment les reçus avec arbres généalogiques) doit être développé et intégré.
+
+**Architecture Technique Requise : Non-Monolithique et Modulaire**
+Le logiciel doit impérativement être conçu avec une **architecture non-monolithique (micro-services)**. Cela signifie que les composants clés devront être déployés et fonctionner comme des services distincts et communicants :
+* **Frontend (Interface Utilisateur) :** Service dédié à l'expérience utilisateur.
+* **Backend (API de la Logique Métier) :** Service dédié au traitement des données et à la logique applicative.
+* **Base de Données :** Service persistant pour le stockage des données.
+
+**Technologies Spécifiques à Utiliser :**
+Pour garantir la robustesse, la flexibilité et la maintenabilité du système, les technologies suivantes doivent être utilisées :
+* **Backend (API RESTful) :** **Python 3** avec le framework **Django REST Framework**.
+* **Frontend (Interface Utilisateur Web) :** **JavaScript** avec le framework **React**.
+* **Base de Données :** **PostgreSQL**.
+
+---
+
+**CAHIER DES CHARGES CONSOLIDÉ ET DÉTAILLÉ DE LAPGEST-PRO 2.0**
+
+### 1. Gestion des Lapins et des Enclos
+Ce module est le cœur du système, centralisant toutes les informations sur les animaux et leur environnement, en suivant le cycle de vie complet.
+
+* **1.1. Identification et Fiche Individuelle du Lapin :**
+    * **Identifiant unique :** Numéro alphanumérique (auto-généré ou manuel).
+    * **Informations de base :** Date de naissance, race, sexe, couleur, statut (reproducteur, engraissement, stock à vendre, vendu, décédé).
+    * **Généalogie :** **Obligatoire** – Lien vers parents (père, mère) pour la construction automatique de l'arbre généalogique.
+    * **Localisation :** Enclos/cage actuel(le).
+    * **Statut sanitaire :** "Sain", "Malade" (avec lien vers traitement), "En quarantaine".
+    * **Notes spécifiques :** Comportement, particularités.
+    * **Lien vers historique détaillé :** Poids, traitements, reproductions, etc.
+
+* **1.2. Gestion des Enclos/Cages :**
+    * **Identifiant d'enclos :** Numéro ou nom.
+    * **Type d'enclos :** Maternité, engraissement, quarantaine, mâle/femelle reproducteur.
+    * **Capacité :** Nombre maximal de lapins.
+    * **Statut :** Occupé, vide, à nettoyer, en maintenance.
+    * **Liste des lapins affectés.**
+
+* **1.3. Gestion de la Reproduction (Accouplement & Mise Bas) :**
+    * **Enregistrement de l'accouplement :** Sélection femelle et mâle reproducteur (vérification statut actif), date et heure. Possibilité de noter succès/échec.
+    * **Calcul automatique de la date de mise bas prévue** (ex: 30-32 jours) avec alerte.
+    * **Enregistrement de la mise bas :** Lien à l'accouplement, date/heure réelle, **nombre de lapereaux nés vivants et morts-nés**. Nombre de lapereaux survivants après 24/48h. Notes sur état mère/lapereaux.
+    * **Mise à jour automatique du statut de la mère** (ex: "En lactation").
+    * **Création automatique d'une "portée" dans le système avec un identifiant unique, et des fiches temporaires pour les lapereaux associés (avant identification individuelle au sevrage).**
+
+* **1.4. Gestion du Sevrage et Constitution du Stock à Vendre :**
+    * **Déclenchement du sevrage :** Sur une portée, à une date spécifiée (ex: 28-35 jours).
+    * **Attribution d'identifiants uniques à chaque lapereau sevré.** Chaque lapin individuel est désormais traçable.
+    * **Transfert des lapereaux :** De maternité vers enclos d'engraissement.
+    * **Mise à jour du statut des lapereaux** (ex: "En engraissement" ou **"Stock à vendre"**). C'est le point de départ du stock commercialisable.
+    * Mise à jour du statut de la mère (ex: "Reproductrice active").
+
+* **1.5. Suivi de l'Engraissement et des Poids :**
+    * **Enregistrement des pesées :** Date, poids (individuel ou par lot).
+    * **Calcul automatique du gain de poids moyen journalier (GMQ).**
+    * Visualisation graphique de la courbe de poids.
+    * **Alerte quand un lapin/lot approche du poids cible pour la vente.**
+
+### 2. Gestion de la Santé et des Soins Vétérinaires
+Ce module assure le suivi précis de la santé du cheptel.
+
+* **2.1. Fiche de Traitement Individuel :**
+    * Lapin concerné, date/heure diagnostic/traitement.
+    * Type de problème/symptômes, diagnostic, médicament/vaccin administré (nom, dosage, voie), date de fin de traitement/rappel.
+    * Nom de l'administrateur (lien employé). Notes sur l'évolution.
+    * **Période de retrait (temps d'attente avant abattage/vente)** automatiquement calculée et affichée.
+
+* **2.2. Calendrier et Rappels Sanitaires :**
+    * Vue calendaire des vaccinations et traitements à venir.
+    * Notifications automatiques (dans le logiciel, email/SMS) pour rappels de vaccins, fins de traitement, périodes de retrait.
+    * Historique des événements sanitaires pour le cheptel.
+
+* **2.3. Gestion des Stocks de Médicaments :**
+    * Nom, dosage, unité, quantité en stock, prix d'achat.
+    * **Date de péremption (alerte avant péremption).**
+    * Alerte de bas niveau de stock. Historique entrées/sorties.
+
+### 3. Gestion des Stocks (Aliments & Matériel)
+Pour une gestion optimisée des ressources.
+
+* **3.1. Gestion des Aliments :**
+    * Types d'aliments.
+    * **Enregistrement détaillé des achats d'aliments :** Date, fournisseur, nom aliment, **poids total du sac/lot, prix d'achat total du sac/lot**.
+    * **Calcul automatique du prix au kilogramme ou au gramme de l'aliment.**
+    * **Gestion de la consommation :**
+        * **Possibilité pour l'utilisateur d'insérer des calculs de consommation** (ex: X kg/jour pour Y lapins).
+        * Suivi des quantités consommées par période.
+        * **Calcul automatique de la consommation moyenne par lapin/jour** (selon phase de vie).
+    * Quantité en stock, date de réception, date de péremption.
+    * Alertes de bas niveau de stock et suggestion de réapprovisionnement.
+
+* **3.2. Gestion du Matériel d'Élevage :**
+    * Articles (abreuvoirs, mangeoires, nids, etc.).
+    * Quantité en stock, état. Alertes pour articles critiques.
+
+* **3.3. Gestion des Fournisseurs :**
+    * Informations de contact. Historique des commandes/achats.
+
+### 4. Gestion des Ventes et des Achats de Lapins
+Assurer un suivi financier précis des mouvements d'animaux.
+
+* **4.1. Ventes de Lapins (Module Dédié "Ventes") :**
+    * **Enregistrement des ventes :** Date, client, sélection des **lapins du "stock à vendre"** (via leurs identifiants uniques).
+    * **Type de vente :** Lapins de chair (poids total vendu, prix au kg), Lapins reproducteurs (prix unitaire).
+    * **Génération automatique d'un reçu :** Informations ferme/client/date. **Pour les reproducteurs, le reçu DOIT inclure l'arbre généalogique du lapin vendu.** Détails des lapins vendus (ID, race, sexe, poids si applicable, prix).
+    * **Mise à jour automatique du statut du lapin** à "Vendu" et retrait du stock actif.
+
+* **4.2. Achats de Lapins :**
+    * Enregistrement des achats : Date, fournisseur, lapins achetés (avec IDs originaux et attribution nouvel ID interne).
+    * Prix d'achat. Mise à jour statut lapin (ex: "Reproducteur acheté", "En quarantaine").
+    * Création automatique de la fiche de performance et de traitement individuelle pour ces reproducteurs.
+
+### 5. Gestion du Personnel (Employés)
+Optimiser la gestion des ressources humaines et le suivi des tâches.
+
+* **5.1. Fiche Employé :** Nom, coordonnées, rôle, date embauche, qualifications.
+* **5.2. Attribution et Suivi des Tâches :** Création, assignation (à un ou plusieurs), date limite. Statut (à faire, en cours, terminée). Confirmation de complétion avec date/heure. Historique des tâches par employé.
+* **5.3. Gestion des Horaires et des Absences :** Planning des horaires, enregistrement congés/maladies.
+* **5.4. Gestion de l'Épargne Salariale :**
+    * **Enregistrement des versements d'épargne :** Date, montant, employé.
+    * **Suivi du solde d'épargne pour chaque employé.**
+    * **Enregistrement des restitutions (retraits) :** Date, montant, employé.
+    * Historique des transactions d'épargne par employé.
+
+### 6. Gestion des Dépenses (Module Dédié "Dépenses")
+Ce module assure le suivi détaillé de toutes les sorties d'argent de la ferme.
+
+* **6.1. Enregistrement des Dépenses :**
+    * **Date de la dépense, Montant.**
+    * **Catégorie de dépense :** (Liste paramétrable : Salaires, Électricité, Eau, Carburant, Loyer, Maintenance, Consommables, Frais administratifs, etc.).
+    * **Description détaillée.**
+    * Lien vers un fournisseur/bénéficiaire si applicable.
+* **6.2. Calcul des Coûts par Animal :** Intégration des données de ce module (ainsi que des achats d'aliments et médicaments) aux fiches individuelles des lapins pour **calculer le coût total de production de chaque lapin avant sa vente.**
+* **6.3. Rapports de Dépenses :** Visualisation des dépenses par catégorie, par période, avec possibilité de filtres.
+
+### 7. Gestion Bancaire et Mobile Money (Module Dédié "Banque" / "Trésorerie")
+Ce module offre une vue d'ensemble sur les flux financiers et la trésorerie de la ferme.
+
+* **7.1. Gestion des Comptes :**
+    * **Ajout/Modification de comptes :** Nom du compte (ex: "Compte principal BNI", "Orange Money Pro"), Type (Bancaire, Mobile Money), Numéro de compte/téléphone, Solde initial.
+    * **Vue d'ensemble des soldes de tous les comptes.**
+* **7.2. Enregistrement des Transactions :**
+    * **Dépôts :** Date, montant, compte destinataire, description, catégorie (ex: "Vente lapins").
+    * **Retraits :** Date, montant, compte source, description, catégorie (ex: "Achat aliment").
+    * **Virements internes :** Date, montant, compte source, compte destinataire (ex: "Transfert MM vers Banque").
+    * **Catégorisation des transactions financières.**
+* **7.3. Suivi de l'État des Comptes :**
+    * **Historique détaillé des transactions** pour chaque compte.
+    * **Solde actuel du compte mis à jour en temps réel.**
+    * Possibilité de filtrer les transactions par date, type, catégorie.
+
+### 8. Rapports et Statistiques Globales
+Des outils d'aide à la décision pour optimiser la production et la rentabilité.
+
+* **8.1. Rapports de Production :** Taux de natalité/survie, productivité des mères, taux de mortalité, temps d'engraissement.
+* **8.2. Rapports Financiers :**
+    * Chiffre d'affaires des ventes (par type, période).
+    * **Bilan de bénéfice ou perte par animal vendu** (basé sur les coûts de production calculés).
+    * Marge brute.
+    * Analyse de rentabilité globale.
+* **8.3. Rapports Sanitaires :** Fréquence des maladies, efficacité des traitements, consommation de médicaments.
+* **8.4. Rapports sur les Reproducteurs :** Fiche de performance (portées, taille, survie lapereaux pour femelles ; saillies réussies pour mâles). Identification des reproducteurs performants/non performants.
+
+### 9. Gestion des Utilisateurs et Sécurité
+Assurer la robustesse et la protection des données.
+
+* **9.1. Authentification :** Connexion sécurisée (nom d'utilisateur, mot de passe, JWT).
+* **9.2. Rôles et Permissions :** Définition de rôles (Administrateur, Gestionnaire, Soigneur) avec droits d'accès spécifiques aux modules et actions.
+* **9.3. Historique des Actions (Log) :** Enregistrement des modifications importantes (qui, quoi, quand).
+* **9.4. Sauvegardes :** Mécanisme de sauvegarde régulière des données.
+
+---
+
+**Mission Finale et Livrables Attendus :**
+
+1.  Un projet Replit entièrement fonctionnel, structuré en services distincts (backend Python/Django REST Framework, frontend React) et connecté à une base de données PostgreSQL.
+2.  L'intégration sans faille de **TOUTES les fonctionnalités détaillées dans ce cahier des charges consolidé**, en particulier les modules de Mise Bas, Sevrage, Stock à Vendre, Ventes, Dépenses et Banque/Trésorerie.
+3.  Un fichier `README.md` exhaustif à la racine du projet Replit, incluant :
+    * Instructions claires pour l'installation, la configuration et le lancement de chaque service (backend, frontend, base de données).
+    * Commandes pour les migrations de base de données.
+    * Instructions pour la création de données initiales ou l'utilisation de fixtures.
+    * Brève explication de l'architecture non-monolithique et de l'interaction entre les services.
+4.  Des tests unitaires et/ou d'intégration de base pour valider le bon fonctionnement des fonctionnalités critiques.
+```
