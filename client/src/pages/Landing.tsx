@@ -29,13 +29,23 @@ export default function Landing() {
             de reproduction, santé, finances et généalogie automatisée.
           </p>
           
-          <Button 
-            onClick={() => window.location.href = '/api/login'}
-            size="lg"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
-          >
-            Commencer Maintenant
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button 
+              onClick={() => window.location.href = '/login'}
+              size="lg"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              Se Connecter
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/demo'}
+              size="lg"
+              variant="outline"
+              className="border-2 border-primary-600 text-primary-600 hover:bg-primary-50 px-8 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+            >
+              Voir la Démo
+            </Button>
+          </div>
         </div>
 
         {/* Features Grid */}
