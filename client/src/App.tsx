@@ -8,7 +8,6 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
-import Demo from "@/pages/Demo";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -16,7 +15,6 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
-      <Route path="/demo" component={Demo} />
       {isLoading ? (
         <Route path="/" component={Landing} />
       ) : isAuthenticated ? (

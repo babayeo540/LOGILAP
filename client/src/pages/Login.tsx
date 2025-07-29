@@ -158,7 +158,7 @@ export default function Login() {
           </div>
 
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="text-sm font-medium text-blue-900 mb-2">Comptes de démonstration :</h4>
+            <h4 className="text-sm font-medium text-blue-900 mb-2">Comptes par défaut :</h4>
             <div className="text-xs text-blue-800 space-y-1">
               <p><strong>Gestionnaire :</strong> admin / admin123</p>
               <p><strong>Employé :</strong> employe / emp123</p>

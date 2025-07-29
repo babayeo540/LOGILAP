@@ -7,6 +7,8 @@ LAPGEST-PRO 2.0 is a comprehensive rabbit farm management system built with a mo
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Authentication: Simple username/password system (changed from Replit OAuth)
+Interface: Single main portal without demo modes
 
 ## System Architecture
 
