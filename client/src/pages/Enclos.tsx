@@ -24,7 +24,7 @@ import {
   CheckCircle,
   XCircle
 } from "lucide-react";
-import EnclosForm from "@/components/EnclosForm";
+import EnclosForm from "../components/EnclosForm";
 
 export default function Enclos() {
   const [searchTerm, setSearchTerm] = useState("");

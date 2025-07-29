@@ -10,6 +10,8 @@ import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Lapins from "@/pages/Lapins";
 import Enclos from "@/pages/Enclos";
+import Reproduction from "@/pages/Reproduction";
+import Finances from "@/pages/Finances";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -24,6 +26,8 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/lapins" component={Lapins} />
           <Route path="/enclos" component={Enclos} />
+          <Route path="/reproduction" component={Reproduction} />
+          <Route path="/finances" component={Finances} />
         </>
       ) : (
         <>

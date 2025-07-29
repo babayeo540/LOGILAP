@@ -76,7 +76,7 @@ export default function Home() {
                 <div className="ml-8 space-y-1">
                   <a href="#" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Fiches Individuelles</a>
                   <Link href="/enclos" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Enclos & Cages</Link>
-                  <a href="#" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Reproduction</a>
+                  <Link href="/reproduction" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Reproduction</Link>
                   <a href="#" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Sevrage</a>
                 </div>
               )}
@@ -95,10 +95,10 @@ export default function Home() {
             </a>
 
             {/* Sales & Purchases */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            <Link href="/finances" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
               <ShoppingCart className="w-5 h-5 mr-3 text-blue-500" />
               Ventes & Achats
-            </a>
+            </Link>
 
             {/* Personnel */}
             <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
