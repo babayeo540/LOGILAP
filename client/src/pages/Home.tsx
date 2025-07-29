@@ -114,16 +114,16 @@ export default function Home() {
             </Link>
 
             {/* Banking */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            <Link href="/tresorerie" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
               <Banknote className="w-5 h-5 mr-3 text-green-500" />
               Trésorerie
-            </a>
+            </Link>
 
             {/* Reports */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+            <Link href="/rapports" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
               <BarChart3 className="w-5 h-5 mr-3 text-indigo-500" />
               Rapports
-            </a>
+            </Link>
           </SidebarContent>
 
           <SidebarFooter>
