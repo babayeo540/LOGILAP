@@ -48,6 +48,49 @@ export default function Personnel() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Mutations pour supprimer employés et tâches
+  const deleteEmployeMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/employes/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la suppression");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/employes"] });
+      toast({
+        title: "Succès",
+        description: "Employé supprimé avec succès",
+      });
+    },
+  });
+
+  const deleteTacheMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/taches/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la suppression");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/taches"] });
+      toast({
+        title: "Succès",
+        description: "Tâche supprimée avec succès",
+      });
+    },
+  });
+
   // Mock data pour les employés
   const mockEmployes = [
     {
@@ -190,7 +233,7 @@ export default function Personnel() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'XOF'
     }).format(amount);
   };
 

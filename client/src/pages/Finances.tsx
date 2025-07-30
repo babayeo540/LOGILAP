@@ -39,6 +39,28 @@ export default function Finances() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Mutations pour supprimer les transactions
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la suppression");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      toast({
+        title: "Succès",
+        description: "Transaction supprimée avec succès",
+      });
+    },
+  });
+
   // Mock data for now - would come from API in real implementation
   const mockTransactions = [
     {
@@ -70,7 +92,7 @@ export default function Finances() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'XOF'
     }).format(amount);
   };
 

@@ -40,6 +40,28 @@ export default function Depenses() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Mutation pour supprimer une dépense
+  const deleteDepenseMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/depenses/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la suppression");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/depenses"] });
+      toast({
+        title: "Succès",
+        description: "Dépense supprimée avec succès",
+      });
+    },
+  });
+
   // Mock data pour les dépenses
   const mockDepenses = [
     {
@@ -133,7 +155,7 @@ export default function Depenses() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'XOF'
     }).format(amount);
   };
 

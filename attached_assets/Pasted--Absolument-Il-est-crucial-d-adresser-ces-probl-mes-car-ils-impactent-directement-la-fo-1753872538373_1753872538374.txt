@@ -1,0 +1,63 @@
+-----
+
+Absolument \! Il est crucial d'adresser ces problèmes car ils impactent directement la **fonctionnalité essentielle (suppression)** et la **cohérence financière (devise)** du logiciel. Un bouton de suppression qui ne fonctionne pas est un bug majeur, et l'absence de ces boutons là où ils sont nécessaires est une lacune de conception. La devise incorrecte, elle, rend les données financières inutilisables.
+
+Voici comment tu peux formuler ta demande à l'agent pour qu'il corrige ces points, en insistant sur la **correction des bugs existants** et l'**implémentation des éléments manquants**, tout en assurant la cohérence.
+
+-----
+
+## Correction des Problèmes de Suppression et de Devise dans LAPGEST-PRO 2.0
+
+```
+**Contexte des Nouveaux Problèmes Identifiés :**
+Lors des tests et de l'examen de LAPGEST-PRO 2.0, des problèmes critiques ont été constatés concernant les fonctionnalités de suppression et la gestion de la devise. Ces problèmes nuisent gravement à l'opérabilité et à la fiabilité du logiciel.
+
+**Objectif de la Correction :**
+* Assurer le fonctionnement correct de **tous les boutons de suppression**.
+* Ajouter les boutons de suppression manquants là où ils sont logiquement nécessaires.
+* Standardiser la devise du logiciel à **Franc CFA (XOF)** pour toutes les transactions et affichages financiers.
+
+**Exigence Fondamentale : Maintien de l'Intégrité et de la Cohérence**
+Ces corrections doivent être effectuées **sans aucune régression** sur les fonctionnalités existantes et **sans compromettre l'intégrité globale, la stabilité ou les autres modules** de LAPGEST-PRO 2.0. La cohérence de l'interface et des données est primordiale.
+
+**Détail des Problèmes et Actions Requises :**
+
+1.  **Problèmes de Boutons de Suppression :**
+    * **Bugs Existants :** Il a été observé que des boutons de suppression sont bien présents dans certaines sections du logiciel, mais qu'ils ne sont **pas fonctionnels**. Lorsque l'utilisateur clique dessus, l'action de suppression ne se produit pas, ou aucune confirmation n'est demandée, ou une erreur silencieuse se produit. **Ces bugs doivent être identifiés et corrigés.**
+    * **Boutons Manquants :** Des boutons de suppression sont **absents** dans des endroits clés où l'action de suppression est nécessaire et attendue par l'utilisateur.
+        * **Module "Lapins" :** Un bouton de suppression doit être disponible pour **chaque lapin individuel** (dans la liste ou sur sa fiche détaillée), permettant de supprimer un lapin (par exemple, en cas de décès ou d'erreur de saisie, avec une confirmation appropriée).
+        * **Module "Reproduction" :** Possibilité de supprimer un enregistrement d'**accouplement** ou de **mise bas** (par exemple, en cas d'erreur de saisie ou si l'événement est annulé).
+        * **Module "Personnel" :** Un bouton de suppression doit être disponible pour **chaque employé**, permettant de retirer un employé du système.
+        * **Module "Trésorerie" (Banque/Mobile Money) :** Un bouton de suppression doit être disponible pour **chaque transaction financière** (dépôt, retrait, virement) dans l'historique, permettant de corriger des erreurs de saisie. Possibilité de supprimer un **compte bancaire/Mobile Money** (si vide et sans transactions rattachées).
+
+2.  **Problèmes de Devise :**
+    * **Incohérence :** La devise affichée dans certaines parties du logiciel **n'est pas le Franc CFA (XOF)**, ou elle est manquante, ou elle utilise un symbole générique.
+    * **Exigence :** **TOUTES** les valeurs monétaires affichées, saisies ou calculées dans le logiciel doivent utiliser la devise **Franc CFA (XOF)** de manière cohérente et explicite. Cela inclut :
+        * Les prix d'achat (aliments, médicaments, lapins).
+        * Les prix de vente (lapins de chair, reproducteurs).
+        * Les salaires.
+        * Toutes les dépenses.
+        * Tous les montants dans les modules "Banque" et "Trésorerie" (dépôts, retraits, virements, soldes des comptes).
+        * Tous les rapports financiers (bénéfices/pertes, coûts par animal, etc.).
+    * **Format d'affichage :** La devise devrait être affichée clairement, par exemple "XOF 15 000" ou "15 000 XOF".
+
+**Considérations Techniques pour l'Agent :**
+
+* **Backend (Django REST Framework) :**
+    * S'assurer que les endpoints API pour la suppression (`DELETE`) sont correctement implémentés pour les ressources concernées (Lapin, Accouplement, Mise Bas, Employé, Transaction, Compte Bancaire).
+    * Vérifier les permissions d'accès pour ces actions de suppression.
+    * Assurer que les modèles de données gèrent la suppression de manière appropriée (ex: `on_delete=models.CASCADE` ou `models.SET_NULL` si nécessaire pour maintenir la cohérence des données, mais la suppression physique est souvent requise ici).
+* **Frontend (React) :**
+    * Implémenter les boutons de suppression manquants dans les composants appropriés (listes, vues de détail, historiques).
+    * S'assurer que les boutons existants sont liés aux bons appels API et que les réponses sont gérées.
+    * **Ajouter une boîte de dialogue de confirmation** avant toute suppression irréversible pour éviter les erreurs.
+    * Modifier les composants d'affichage des montants pour garantir que la devise **Franc CFA (XOF)** est toujours utilisée et formatée correctement.
+    * Vérifier que les champs de saisie de montants sont adaptés à la devise (par exemple, gestion des virgules/points décimaux selon les conventions locales).
+
+**Livrables Spécifiques pour cette Correction :**
+
+* Mise à jour du code backend et frontend pour les fonctionnalités de suppression et la gestion de la devise.
+* Tests de non-régression spécifiques axés sur la suppression et l'affichage des montants.
+* Confirmation que tous les boutons de suppression sont fonctionnels et bien positionnés.
+* Confirmation que toutes les valeurs monétaires sont en Franc CFA (XOF) dans l'intégralité du logiciel.
+```
