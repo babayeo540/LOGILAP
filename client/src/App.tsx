@@ -18,6 +18,7 @@ import Personnel from "@/pages/Personnel";
 import Depenses from "@/pages/Depenses";
 import Tresorerie from "@/pages/Tresorerie";
 import Rapports from "@/pages/Rapports";
+import Parametres from "@/pages/Parametres";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,6 +41,7 @@ function Router() {
           <Route path="/depenses" component={Depenses} />
           <Route path="/tresorerie" component={Tresorerie} />
           <Route path="/rapports" component={Rapports} />
+          <Route path="/parametres" component={Parametres} />
         </>
       ) : (
         <>

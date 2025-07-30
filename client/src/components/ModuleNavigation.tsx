@@ -12,7 +12,8 @@ import {
   Users, 
   Receipt, 
   Banknote, 
-  BarChart3 
+  BarChart3,
+  Settings
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -38,7 +39,8 @@ export default function ModuleNavigation({
     { id: "personnel", name: "Personnel", icon: Users, path: "/personnel", color: "text-purple-600" },
     { id: "depenses", name: "Dépenses", icon: Receipt, path: "/depenses", color: "text-orange-600" },
     { id: "tresorerie", name: "Trésorerie", icon: Banknote, path: "/tresorerie", color: "text-green-600" },
-    { id: "rapports", name: "Rapports", icon: BarChart3, path: "/rapports", color: "text-indigo-600" }
+    { id: "rapports", name: "Rapports", icon: BarChart3, path: "/rapports", color: "text-indigo-600" },
+    { id: "parametres", name: "Paramètres", icon: Settings, path: "/parametres", color: "text-gray-600" }
   ];
 
   const currentModuleData = modules.find(m => m.id === currentModule);
