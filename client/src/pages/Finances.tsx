@@ -339,10 +339,7 @@ export default function Finances() {
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => {
                               if (confirm("Êtes-vous sûr de vouloir supprimer cette transaction ?")) {
-                                toast({
-                                  title: "Transaction supprimée",
-                                  description: "La transaction a été supprimée avec succès",
-                                });
+                                deleteTransactionMutation.mutate(transaction.id);
                               }
                             }}
                           >

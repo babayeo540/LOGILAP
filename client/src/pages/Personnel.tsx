@@ -504,6 +504,18 @@ export default function Personnel() {
                         >
                           <Edit className="w-3 h-3" />
                         </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            if (confirm("Êtes-vous sûr de vouloir supprimer cet employé ?")) {
+                              deleteEmployeMutation.mutate(employe.id);
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -573,10 +585,7 @@ export default function Personnel() {
                         className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         onClick={() => {
                           if (confirm("Êtes-vous sûr de vouloir supprimer cette tâche ?")) {
-                            toast({
-                              title: "Tâche supprimée",
-                              description: "La tâche a été supprimée avec succès",
-                            });
+                            deleteTacheMutation.mutate(tache.id);
                           }
                         }}
                       >
