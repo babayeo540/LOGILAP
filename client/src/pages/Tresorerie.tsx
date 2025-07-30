@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,40 @@ export default function Tresorerie() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Mock data pour les comptes
+  // Fetch comptes from API
+  const { data: comptes = [], isLoading: comptesLoading } = useQuery({
+    queryKey: ['/api/comptes'],
+  });
+
+  // Fetch transactions from API
+  const { data: transactions = [], isLoading: transactionsLoading } = useQuery({
+    queryKey: ['/api/transactions'],
+  });
+
+  // Delete compte mutation
+  const deleteCompteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest(`/api/comptes/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/comptes'] });
+      toast({
+        title: "Compte supprimé",
+        description: "Le compte a été supprimé avec succès",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le compte",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mock data pour les comptes (fallback)
   const mockComptes = [
     {
       id: "1",
@@ -408,6 +442,18 @@ export default function Tresorerie() {
                       >
                         <Plus className="w-4 h-4" />
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => {
+                          if (confirm("Êtes-vous sûr de vouloir supprimer ce compte ?")) {
+                            deleteCompteMutation.mutate(compte.id);
+                          }
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -439,7 +485,7 @@ export default function Tresorerie() {
                     className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                   >
                     <option value="all">Tous les comptes</option>
-                    {mockComptes.map(compte => (
+                    {(comptes.length > 0 ? comptes : mockComptes).map(compte => (
                       <option key={compte.id} value={compte.id}>{compte.nom}</option>
                     ))}
                   </select>

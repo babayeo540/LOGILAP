@@ -185,6 +185,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/accouplements/:id', isAuthenticated, async (req, res) => {
+    try {
+      const validatedData = insertAccouplementSchema.partial().parse(req.body);
+      const accouplement = await storage.updateAccouplement(req.params.id, validatedData);
+      res.json(accouplement);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error updating accouplement:", error);
+      res.status(500).json({ message: "Failed to update accouplement" });
+    }
+  });
+
+  app.delete('/api/accouplements/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteAccouplement(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting accouplement:", error);
+      res.status(500).json({ message: "Failed to delete accouplement" });
+    }
+  });
+
   // Mises bas routes
   app.get('/api/mises-bas', isAuthenticated, async (req, res) => {
     try {
@@ -235,6 +259,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/ventes/:id', isAuthenticated, async (req, res) => {
+    try {
+      const validatedData = insertVenteSchema.partial().parse(req.body);
+      const vente = await storage.updateVente(req.params.id, validatedData);
+      res.json(vente);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error updating vente:", error);
+      res.status(500).json({ message: "Failed to update vente" });
+    }
+  });
+
   app.delete('/api/ventes/:id', isAuthenticated, async (req, res) => {
     try {
       await storage.deleteVente(req.params.id);
@@ -267,6 +305,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating depense:", error);
       res.status(500).json({ message: "Failed to create depense" });
+    }
+  });
+
+  app.put('/api/depenses/:id', isAuthenticated, async (req, res) => {
+    try {
+      const validatedData = insertDepenseSchema.partial().parse(req.body);
+      const depense = await storage.updateDepense(req.params.id, validatedData);
+      res.json(depense);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error updating depense:", error);
+      res.status(500).json({ message: "Failed to update depense" });
     }
   });
 
@@ -316,6 +368,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating employe:", error);
       res.status(500).json({ message: "Failed to update employe" });
+    }
+  });
+
+  app.delete('/api/employes/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteEmploye(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting employe:", error);
+      res.status(500).json({ message: "Failed to delete employe" });
     }
   });
 
@@ -392,6 +454,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting traitement:", error);
       res.status(500).json({ message: "Failed to delete traitement" });
+    }
+  });
+
+  // Articles routes (for Stocks module)
+  app.get('/api/articles', isAuthenticated, async (req, res) => {
+    try {
+      const articles = await storage.getArticles();
+      res.json(articles);
+    } catch (error) {
+      console.error("Error fetching articles:", error);
+      res.status(500).json({ message: "Failed to fetch articles" });
+    }
+  });
+
+  app.post('/api/articles', isAuthenticated, async (req, res) => {
+    try {
+      const article = await storage.createArticle(req.body);
+      res.status(201).json(article);
+    } catch (error) {
+      console.error("Error creating article:", error);
+      res.status(500).json({ message: "Failed to create article" });
+    }
+  });
+
+  app.put('/api/articles/:id', isAuthenticated, async (req, res) => {
+    try {
+      const article = await storage.updateArticle(req.params.id, req.body);
+      res.json(article);
+    } catch (error) {
+      console.error("Error updating article:", error);
+      res.status(500).json({ message: "Failed to update article" });
+    }
+  });
+
+  app.delete('/api/articles/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteArticle(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      res.status(500).json({ message: "Failed to delete article" });
+    }
+  });
+
+  // Comptes routes (for Trésorerie module)
+  app.get('/api/comptes', isAuthenticated, async (req, res) => {
+    try {
+      const comptes = await storage.getComptes();
+      res.json(comptes);
+    } catch (error) {
+      console.error("Error fetching comptes:", error);
+      res.status(500).json({ message: "Failed to fetch comptes" });
+    }
+  });
+
+  app.post('/api/comptes', isAuthenticated, async (req, res) => {
+    try {
+      const compte = await storage.createCompte(req.body);
+      res.status(201).json(compte);
+    } catch (error) {
+      console.error("Error creating compte:", error);
+      res.status(500).json({ message: "Failed to create compte" });
+    }
+  });
+
+  app.put('/api/comptes/:id', isAuthenticated, async (req, res) => {
+    try {
+      const compte = await storage.updateCompte(req.params.id, req.body);
+      res.json(compte);
+    } catch (error) {
+      console.error("Error updating compte:", error);
+      res.status(500).json({ message: "Failed to update compte" });
+    }
+  });
+
+  app.delete('/api/comptes/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteCompte(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting compte:", error);
+      res.status(500).json({ message: "Failed to delete compte" });
     }
   });
 

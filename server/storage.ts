@@ -229,6 +229,19 @@ export class DatabaseStorage implements IStorage {
     return newAccouplement;
   }
 
+  async updateAccouplement(id: string, accouplement: Partial<InsertAccouplement>): Promise<Accouplement> {
+    const [updatedAccouplement] = await db
+      .update(accouplements)
+      .set(accouplement)
+      .where(eq(accouplements.id, id))
+      .returning();
+    return updatedAccouplement;
+  }
+
+  async deleteAccouplement(id: string): Promise<void> {
+    await db.delete(accouplements).where(eq(accouplements.id, id));
+  }
+
   async getAccouplementsByDate(startDate: Date, endDate: Date): Promise<Accouplement[]> {
     return await db
       .select()
@@ -269,6 +282,15 @@ export class DatabaseStorage implements IStorage {
     return newVente;
   }
 
+  async updateVente(id: string, vente: Partial<InsertVente>): Promise<Vente> {
+    const [updatedVente] = await db
+      .update(ventes)
+      .set(vente)
+      .where(eq(ventes.id, id))
+      .returning();
+    return updatedVente;
+  }
+
   async deleteVente(id: string): Promise<void> {
     await db.delete(ventes).where(eq(ventes.id, id));
   }
@@ -291,6 +313,15 @@ export class DatabaseStorage implements IStorage {
   async createDepense(depense: InsertDepense): Promise<Depense> {
     const [newDepense] = await db.insert(depenses).values(depense).returning();
     return newDepense;
+  }
+
+  async updateDepense(id: string, depense: Partial<InsertDepense>): Promise<Depense> {
+    const [updatedDepense] = await db
+      .update(depenses)
+      .set(depense)
+      .where(eq(depenses.id, id))
+      .returning();
+    return updatedDepense;
   }
 
   async deleteDepense(id: string): Promise<void> {
@@ -369,6 +400,107 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTraitement(id: string): Promise<void> {
     await db.delete(traitements).where(eq(traitements.id, id));
+  }
+
+  // Articles (for Stocks module)
+  async getArticles(): Promise<any[]> {
+    // Combine different stock types (medicaments, aliments, materiel)
+    const medicamentsData = await db.select().from(medicaments);
+    const alimentsData = await db.select().from(aliments);
+    const materielData = await db.select().from(materiel);
+    
+    const articles = [
+      ...medicamentsData.map(m => ({ ...m, type: 'medicament', stockActuel: m.quantiteStock, stockMinimum: m.seuilAlerte, stockMaximum: Number(m.seuilAlerte) * 5, unite: m.unite || 'unité', prixUnitaire: m.prixAchat })),
+      ...alimentsData.map(a => ({ ...a, type: 'aliment', stockActuel: a.quantiteStock, stockMinimum: a.seuilAlerte, stockMaximum: Number(a.seuilAlerte) * 5, unite: a.unite, prixUnitaire: a.prixParKg })),
+      ...materielData.map(mat => ({ ...mat, type: 'materiel', stockActuel: mat.quantiteStock, stockMinimum: mat.seuilAlerte, stockMaximum: Number(mat.seuilAlerte) * 3, unite: 'unité', prixUnitaire: 0 }))
+    ];
+    
+    return articles;
+  }
+
+  async createArticle(article: any): Promise<any> {
+    // Create based on type
+    if (article.type === 'medicament') {
+      const [newMedicament] = await db.insert(medicaments).values({
+        nom: article.nom,
+        dosage: article.dosage,
+        unite: article.unite,
+        quantiteStock: article.stockActuel,
+        prixAchat: article.prixUnitaire,
+        seuilAlerte: article.stockMinimum
+      }).returning();
+      return { ...newMedicament, type: 'medicament' };
+    } else if (article.type === 'aliment') {
+      const [newAliment] = await db.insert(aliments).values({
+        nom: article.nom,
+        type: article.categorie,
+        quantiteStock: article.stockActuel,
+        unite: article.unite,
+        prixParKg: article.prixUnitaire,
+        seuilAlerte: article.stockMinimum
+      }).returning();
+      return { ...newAliment, type: 'aliment' };
+    } else {
+      const [newMateriel] = await db.insert(materiel).values({
+        nom: article.nom,
+        type: article.categorie,
+        quantiteStock: article.stockActuel,
+        seuilAlerte: article.stockMinimum
+      }).returning();
+      return { ...newMateriel, type: 'materiel' };
+    }
+  }
+
+  async updateArticle(id: string, article: any): Promise<any> {
+    // Update based on type - simplified approach
+    if (article.type === 'medicament') {
+      const [updated] = await db.update(medicaments).set({
+        nom: article.nom,
+        quantiteStock: article.stockActuel,
+        seuilAlerte: article.stockMinimum
+      }).where(eq(medicaments.id, id)).returning();
+      return updated;
+    } else if (article.type === 'aliment') {
+      const [updated] = await db.update(aliments).set({
+        nom: article.nom,
+        quantiteStock: article.stockActuel,
+        seuilAlerte: article.stockMinimum
+      }).where(eq(aliments.id, id)).returning();
+      return updated;
+    } else {
+      const [updated] = await db.update(materiel).set({
+        nom: article.nom,
+        quantiteStock: article.stockActuel,
+        seuilAlerte: article.stockMinimum
+      }).where(eq(materiel.id, id)).returning();
+      return updated;
+    }
+  }
+
+  async deleteArticle(id: string): Promise<void> {
+    // Try to delete from all possible tables
+    await db.delete(medicaments).where(eq(medicaments.id, id));
+    await db.delete(aliments).where(eq(aliments.id, id));
+    await db.delete(materiel).where(eq(materiel.id, id));
+  }
+
+  // Comptes (for Trésorerie module)
+  async getComptes(): Promise<any[]> {
+    return await db.select().from(comptes).where(eq(comptes.actif, true));
+  }
+
+  async createCompte(compte: any): Promise<any> {
+    const [newCompte] = await db.insert(comptes).values(compte).returning();
+    return newCompte;
+  }
+
+  async updateCompte(id: string, compte: any): Promise<any> {
+    const [updatedCompte] = await db.update(comptes).set(compte).where(eq(comptes.id, id)).returning();
+    return updatedCompte;
+  }
+
+  async deleteCompte(id: string): Promise<void> {
+    await db.update(comptes).set({ actif: false }).where(eq(comptes.id, id));
   }
 
   // Dashboard metrics

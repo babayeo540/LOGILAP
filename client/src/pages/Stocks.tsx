@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -43,7 +44,35 @@ export default function Stocks() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Mock data pour les articles en stock
+  // Fetch articles from API
+  const { data: articles = [], isLoading: articlesLoading } = useQuery({
+    queryKey: ['/api/articles'],
+  });
+
+  // Delete article mutation
+  const deleteArticleMutation = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest(`/api/articles/${id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/articles'] });
+      toast({
+        title: "Article supprimé",
+        description: "L'article a été supprimé avec succès",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer l'article",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mock data pour les articles en stock (fallback)
   const mockArticles = [
     {
       id: "1",
@@ -336,7 +365,15 @@ export default function Stocks() {
                 </p>
               </div>
             ) : (
-              filteredArticles.map((article: any) => {
+              (articles.length > 0 ? 
+                articles.filter((article: any) => {
+                  const matchesSearch = article.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                      article.description?.toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchesCategorie = categorieFilter === "all" || article.type === categorieFilter;
+                  return matchesSearch && matchesCategorie;
+                }) :
+                filteredArticles
+              ).map((article: any) => {
                 const status = getStockStatus(article);
                 const pourcentageStock = (article.stockActuel / article.stockMaximum) * 100;
                 
@@ -431,10 +468,7 @@ export default function Stocks() {
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => {
                               if (confirm("Êtes-vous sûr de vouloir supprimer cet article ?")) {
-                                toast({
-                                  title: "Article supprimé",
-                                  description: "L'article a été supprimé avec succès",
-                                });
+                                deleteArticleMutation.mutate(article.id);
                               }
                             }}
                           >
