@@ -42,6 +42,11 @@ export default function Parametres() {
     phone: "",
     farmName: ""
   });
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: ""
+  });
 
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -54,7 +59,11 @@ export default function Parametres() {
   // Update user profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
-      return await apiRequest('/api/auth/profile', 'PUT', profileData);
+      return await apiRequest('/api/auth/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profileData),
+        headers: { 'Content-Type': 'application/json' }
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
@@ -77,8 +86,118 @@ export default function Parametres() {
     queryKey: ['/api/system/stats'],
   });
 
+  // Change password mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (passwordData: any) => {
+      return await apiRequest('/api/auth/password', {
+        method: 'PUT',
+        body: JSON.stringify(passwordData),
+        headers: { 'Content-Type': 'application/json' }  
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Mot de passe mis à jour",
+        description: "Votre mot de passe a été changé avec succès",
+      });
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: ""
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de changer le mot de passe",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // System actions mutations
+  const clearCacheMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/system/clear-cache', {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Cache vidé",
+        description: "Le cache a été vidé avec succès",
+      });
+    },
+  });
+
+  const optimizeDbMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('/api/system/optimize-db', {
+        method: 'POST'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Base de données optimisée",
+        description: "L'optimisation de la base de données est terminée",
+      });
+    },
+  });
+
+  const exportDataMutation = useMutation({
+    mutationFn: async (format: string) => {
+      return await apiRequest('/api/system/export', {
+        method: 'POST',
+        body: JSON.stringify({ format }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+    },
+    onSuccess: (data) => {
+      // Create download
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `lapgest-export-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Export réussi",
+        description: "Vos données ont été exportées avec succès",
+      });
+    },
+  });
+
   const handleProfileUpdate = () => {
     updateProfileMutation.mutate(profileData);
+  };
+
+  const handlePasswordChange = () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: "Erreur", 
+        description: "Le mot de passe doit contenir au moins 6 caractères",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword
+    });
   };
 
   const formatCurrency = (amount: number) => {
@@ -289,6 +408,8 @@ export default function Parametres() {
                     <Input
                       id="currentPassword"
                       type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({...passwordData, currentPassword: e.target.value})}
                       placeholder="Entrez votre mot de passe actuel"
                     />
                   </div>
@@ -297,6 +418,8 @@ export default function Parametres() {
                     <Input
                       id="newPassword"
                       type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
                       placeholder="Entrez un nouveau mot de passe"
                     />
                   </div>
@@ -305,12 +428,18 @@ export default function Parametres() {
                     <Input
                       id="confirmPassword"
                       type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
                       placeholder="Confirmez le nouveau mot de passe"
                     />
                   </div>
-                  <Button className="w-full md:w-auto">
+                  <Button 
+                    onClick={handlePasswordChange}
+                    disabled={changePasswordMutation.isPending}
+                    className="w-full md:w-auto"
+                  >
                     <Key className="w-4 h-4 mr-2" />
-                    Changer le mot de passe
+                    {changePasswordMutation.isPending ? "Changement..." : "Changer le mot de passe"}
                   </Button>
                 </div>
               </CardContent>
@@ -371,13 +500,21 @@ export default function Parametres() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => clearCacheMutation.mutate()}
+                    disabled={clearCacheMutation.isPending}
+                  >
                     <RefreshCw className="w-4 h-4 mr-2" />
-                    Vider le cache
+                    {clearCacheMutation.isPending ? "Vidage..." : "Vider le cache"}
                   </Button>
-                  <Button variant="outline">
+                  <Button 
+                    variant="outline"
+                    onClick={() => optimizeDbMutation.mutate()}
+                    disabled={optimizeDbMutation.isPending}
+                  >
                     <Database className="w-4 h-4 mr-2" />
-                    Optimiser la BD
+                    {optimizeDbMutation.isPending ? "Optimisation..." : "Optimiser la BD"}
                   </Button>
                   <Button variant="outline">
                     <Download className="w-4 h-4 mr-2" />
@@ -403,11 +540,20 @@ export default function Parametres() {
                     Téléchargez une copie complète de vos données d'élevage.
                   </p>
                   <div className="space-y-2">
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full"
+                      onClick={() => exportDataMutation.mutate('json')}
+                      disabled={exportDataMutation.isPending}
+                    >
                       <Download className="w-4 h-4 mr-2" />
-                      Exporter toutes les données (JSON)
+                      {exportDataMutation.isPending ? "Export en cours..." : "Exporter toutes les données (JSON)"}
                     </Button>
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => exportDataMutation.mutate('csv')}
+                      disabled={exportDataMutation.isPending}
+                    >
                       <Download className="w-4 h-4 mr-2" />
                       Exporter pour Excel (CSV)
                     </Button>

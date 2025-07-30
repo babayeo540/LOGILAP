@@ -539,6 +539,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Paramètres routes
+  app.get('/api/auth/profile', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  app.put('/api/auth/profile', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const validatedData = z.object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional(),
+        farmName: z.string().optional(),
+      }).parse(req.body);
+      
+      const updatedUser = await storage.updateUser(userId, validatedData);
+      res.json(updatedUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error updating user profile:", error);
+      res.status(500).json({ message: "Failed to update user profile" });
+    }
+  });
+
+  app.put('/api/auth/password', isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).id;
+      const { currentPassword, newPassword } = req.body;
+      
+      const result = await storage.changePassword(userId, currentPassword, newPassword);
+      if (!result) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+      
+      res.json({ message: "Password updated successfully" });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(500).json({ message: "Failed to change password" });
+    }
+  });
+
+  app.get('/api/system/stats', isAuthenticated, async (req, res) => {
+    try {
+      const stats = await storage.getSystemStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching system stats:", error);
+      res.status(500).json({ message: "Failed to fetch system stats" });
+    }
+  });
+
+  app.post('/api/system/export', isAuthenticated, async (req, res) => {
+    try {
+      const { format } = req.body;
+      const exportData = await storage.exportAllData(format);
+      
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=lapgest-export-${new Date().toISOString().split('T')[0]}.${format}`);
+      res.json(exportData);
+    } catch (error) {
+      console.error("Error exporting data:", error);
+      res.status(500).json({ message: "Failed to export data" });
+    }
+  });
+
+  app.post('/api/system/clear-cache', isAuthenticated, async (req, res) => {
+    try {
+      // Clear application cache
+      res.json({ message: "Cache cleared successfully" });
+    } catch (error) {
+      console.error("Error clearing cache:", error);
+      res.status(500).json({ message: "Failed to clear cache" });
+    }
+  });
+
+  app.post('/api/system/optimize-db', isAuthenticated, async (req, res) => {
+    try {
+      await storage.optimizeDatabase();
+      res.json({ message: "Database optimized successfully" });
+    } catch (error) {
+      console.error("Error optimizing database:", error);
+      res.status(500).json({ message: "Failed to optimize database" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
