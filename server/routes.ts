@@ -354,6 +354,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Traitements routes
+  app.get('/api/traitements', isAuthenticated, async (req, res) => {
+    try {
+      const traitements = await storage.getTraitements();
+      res.json(traitements);
+    } catch (error) {
+      console.error("Error fetching traitements:", error);
+      res.status(500).json({ message: "Failed to fetch traitements" });
+    }
+  });
+
+  app.post('/api/traitements', isAuthenticated, async (req, res) => {
+    try {
+      const traitement = await storage.createTraitement(req.body);
+      res.status(201).json(traitement);
+    } catch (error) {
+      console.error("Error creating traitement:", error);
+      res.status(500).json({ message: "Failed to create traitement" });
+    }
+  });
+
+  app.put('/api/traitements/:id', isAuthenticated, async (req, res) => {
+    try {
+      const traitement = await storage.updateTraitement(req.params.id, req.body);
+      res.json(traitement);
+    } catch (error) {
+      console.error("Error updating traitement:", error);
+      res.status(500).json({ message: "Failed to update traitement" });
+    }
+  });
+
+  app.delete('/api/traitements/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteTraitement(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting traitement:", error);
+      res.status(500).json({ message: "Failed to delete traitement" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

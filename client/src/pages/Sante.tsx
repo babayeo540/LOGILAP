@@ -41,55 +41,41 @@ export default function Sante() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: lapins = [] } = useQuery({
+  const { data: lapins = [], isLoading: loadingLapins } = useQuery({
     queryKey: ["/api/lapins"],
   });
 
-  // Mock data for health records - would come from API in real implementation
-  const mockHealthRecords = [
-    {
-      id: "1",
-      type: "soin",
-      lapinId: "lapin-1",
-      titre: "Traitement diarrhée",
-      description: "Administration d'anti-diarrhéique",
-      date: "2024-07-25",
-      gravite: "modérée",
-      traitement: "Smecta pendant 3 jours",
-      veterinaire: "Dr. Martin",
-      cout: 15.50,
-      status: "terminé"
+  // Fetch traitements (health records) from API
+  const { data: traitements = [], isLoading: loadingTraitements } = useQuery({
+    queryKey: ["/api/traitements"],
+  });
+
+  // Mutations pour supprimer et modifier les traitements
+  const deleteTraitementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/traitements/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la suppression");
+      }
+      return response.json();
     },
-    {
-      id: "2",
-      type: "vaccin",
-      lapinId: "lapin-2", 
-      titre: "Vaccination RHD",
-      description: "Rappel annuel RHD + Myxomatose",
-      date: "2024-07-20",
-      vaccin: "Nobivac Myxo-RHD",
-      prochainRappel: "2025-07-20",
-      veterinaire: "Dr. Dubois",
-      cout: 25.00,
-      status: "effectué"
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/traitements"] });
+      toast({
+        title: "Succès",
+        description: "Traitement supprimé avec succès",
+      });
     },
-    {
-      id: "3",
-      type: "examen",
-      lapinId: "lapin-3",
-      titre: "Check-up reproducteur",
-      description: "Examen général avant saillie",
-      date: "2024-07-18",
-      poids: 3.2,
-      temperature: 38.5,
-      veterinaire: "Dr. Martin",
-      cout: 35.00,
-      status: "terminé"
-    }
-  ];
+  });
+
+
 
   const getLapinName = (lapinId: string) => {
-    const lapin = lapins.find((l: any) => l.id === lapinId);
+    const lapin = (lapins as any[]).find((l: any) => l.id === lapinId);
     return lapin ? lapin.identifiant : lapinId;
   };
 
@@ -97,16 +83,16 @@ export default function Sante() {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
-  const getTypeBadge = (type: string) => {
-    switch (type) {
-      case "soin":
-        return <Badge className="bg-red-100 text-red-800"><Pill className="w-3 h-3 mr-1" />Soin</Badge>;
-      case "vaccin":
-        return <Badge className="bg-green-100 text-green-800"><Shield className="w-3 h-3 mr-1" />Vaccin</Badge>;
-      case "examen":
-        return <Badge className="bg-blue-100 text-blue-800"><Stethoscope className="w-3 h-3 mr-1" />Examen</Badge>;
+  const getTypeBadge = (status: string) => {
+    switch (status) {
+      case "en_cours":
+        return <Badge className="bg-yellow-100 text-yellow-800"><Pill className="w-3 h-3 mr-1" />En cours</Badge>;
+      case "termine":
+        return <Badge className="bg-green-100 text-green-800"><Shield className="w-3 h-3 mr-1" />Terminé</Badge>;
+      case "suspendu":
+        return <Badge className="bg-red-100 text-red-800"><Stethoscope className="w-3 h-3 mr-1" />Suspendu</Badge>;
       default:
-        return <Badge className="bg-gray-100 text-gray-800">{type}</Badge>;
+        return <Badge className="bg-gray-100 text-gray-800">{status}</Badge>;
     }
   };
 
@@ -126,24 +112,24 @@ export default function Sante() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
-      currency: 'EUR'
+      currency: 'XOF'
     }).format(amount);
   };
 
-  const filteredRecords = mockHealthRecords.filter((record: any) => {
+  const filteredRecords = (traitements as any[]).filter((record: any) => {
     const lapinNom = getLapinName(record.lapinId);
-    const matchesSearch = record.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (record.diagnostic || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lapinNom.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === "all" || record.type === typeFilter;
+    const matchesType = typeFilter === "all" || record.status === typeFilter;
     return matchesSearch && matchesType;
   });
 
   // Calculs des statistiques
-  const totalCouts = mockHealthRecords.reduce((sum, r) => sum + (r.cout || 0), 0);
-  const soinsEnCours = mockHealthRecords.filter(r => r.status === "en_cours").length;
-  const vaccinsAFaire = mockHealthRecords.filter(r => 
-    r.type === "vaccin" && r.prochainRappel && 
-    new Date(r.prochainRappel) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  const totalCouts = (traitements as any[]).reduce((sum, r) => sum + (r.cout || 0), 0);
+  const soinsEnCours = (traitements as any[]).filter(r => r.status === "en_cours").length;
+  const vaccinsAFaire = (traitements as any[]).filter(r => 
+    r.dateRappel && 
+    new Date(r.dateRappel) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
   ).length;
 
   return (
@@ -188,7 +174,7 @@ export default function Sante() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Interventions</p>
-                <p className="text-2xl font-bold text-gray-900">{mockHealthRecords.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{traitements.length}</p>
               </div>
             </div>
           </CardContent>
@@ -298,22 +284,22 @@ export default function Sante() {
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-4">
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                          record.type === "soin" ? 'bg-red-100' :
-                          record.type === "vaccin" ? 'bg-green-100' : 'bg-blue-100'
+                          record.status === "en_cours" ? 'bg-yellow-100' :
+                          record.status === "termine" ? 'bg-green-100' : 'bg-red-100'
                         }`}>
-                          {record.type === "soin" ? <Pill className="text-red-600 w-6 h-6" /> :
-                           record.type === "vaccin" ? <Shield className="text-green-600 w-6 h-6" /> :
-                           <Stethoscope className="text-blue-600 w-6 h-6" />}
+                          {record.status === "en_cours" ? <Pill className="text-yellow-600 w-6 h-6" /> :
+                           record.status === "termine" ? <Shield className="text-green-600 w-6 h-6" /> :
+                           <Stethoscope className="text-red-600 w-6 h-6" />}
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="text-lg font-medium text-gray-900">
-                              {record.titre}
+                              {record.diagnostic || 'Traitement'}
                             </h3>
-                            {getTypeBadge(record.type)}
+                            {getTypeBadge(record.status)}
                             {record.gravite && getGraviteBadge(record.gravite)}
                           </div>
-                          <p className="text-gray-600 mb-2">{record.description}</p>
+                          <p className="text-gray-600 mb-2">{record.symptomes || record.notes || 'Aucune description'}</p>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                               <p className="text-gray-500">Lapin</p>
@@ -321,26 +307,26 @@ export default function Sante() {
                             </div>
                             <div>
                               <p className="text-gray-500">Date</p>
-                              <p className="font-medium">{formatDate(record.date)}</p>
+                              <p className="font-medium">{record.dateDebut ? formatDate(record.dateDebut) : 'N/A'}</p>
                             </div>
-                            {record.veterinaire && (
+                            {record.employeId && (
                               <div>
-                                <p className="text-gray-500">Vétérinaire</p>
-                                <p className="font-medium">{record.veterinaire}</p>
+                                <p className="text-gray-500">Employé</p>
+                                <p className="font-medium">{record.employeId}</p>
                               </div>
                             )}
-                            {record.cout && (
+                            {record.medicamentId && (
                               <div>
-                                <p className="text-gray-500">Coût</p>
-                                <p className="font-medium">{formatCurrency(record.cout)}</p>
+                                <p className="text-gray-500">Médicament</p>
+                                <p className="font-medium">{record.medicamentId}</p>
                               </div>
                             )}
                           </div>
-                          {record.prochainRappel && (
+                          {record.dateRappel && (
                             <div className="mt-2 p-2 bg-yellow-50 rounded-lg">
                               <p className="text-sm text-yellow-800">
                                 <Clock className="w-4 h-4 inline mr-1" />
-                                Prochain rappel: {formatDate(record.prochainRappel)}
+                                Prochain rappel: {formatDate(record.dateRappel)}
                               </p>
                             </div>
                           )}
@@ -353,11 +339,7 @@ export default function Sante() {
                           size="sm"
                           onClick={() => {
                             setEditingRecord(record);
-                            if (record.type === "soin") {
-                              setShowSoinForm(true);
-                            } else {
-                              setShowVaccinForm(true);
-                            }
+                            setShowSoinForm(true);
                           }}
                         >
                           <Edit className="w-4 h-4" />
@@ -368,10 +350,7 @@ export default function Sante() {
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           onClick={() => {
                             if (confirm("Êtes-vous sûr de vouloir supprimer cet enregistrement ?")) {
-                              toast({
-                                title: "Enregistrement supprimé",
-                                description: "L'enregistrement a été supprimé avec succès",
-                              });
+                              deleteTraitementMutation.mutate(record.id);
                             }
                           }}
                         >
@@ -393,16 +372,16 @@ export default function Sante() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {mockHealthRecords
-                  .filter(r => r.type === "vaccin" && r.prochainRappel)
-                  .sort((a, b) => new Date(a.prochainRappel).getTime() - new Date(b.prochainRappel).getTime())
-                  .map((vaccin) => {
-                    const daysUntil = Math.ceil((new Date(vaccin.prochainRappel).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                {(traitements as any[])
+                  .filter(r => r.dateRappel)
+                  .sort((a, b) => new Date(a.dateRappel).getTime() - new Date(b.dateRappel).getTime())
+                  .map((traitement) => {
+                    const daysUntil = Math.ceil((new Date(traitement.dateRappel).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                     return (
-                      <div key={vaccin.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div key={traitement.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <p className="font-medium">{getLapinName(vaccin.lapinId)}</p>
-                          <p className="text-sm text-gray-600">{vaccin.titre}</p>
+                          <p className="font-medium">{getLapinName(traitement.lapinId)}</p>
+                          <p className="text-sm text-gray-600">{traitement.diagnostic}</p>
                         </div>
                         <div className="text-right">
                           <p className={`font-medium ${
@@ -411,7 +390,7 @@ export default function Sante() {
                           }`}>
                             {daysUntil <= 0 ? 'En retard' : `dans ${daysUntil} jours`}
                           </p>
-                          <p className="text-sm text-gray-500">{formatDate(vaccin.prochainRappel)}</p>
+                          <p className="text-sm text-gray-500">{formatDate(traitement.dateRappel)}</p>
                         </div>
                       </div>
                     );

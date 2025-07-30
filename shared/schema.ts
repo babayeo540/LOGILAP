@@ -523,6 +523,11 @@ export const insertEmployeSchema = createInsertSchema(employes).omit({
   updatedAt: true,
 });
 
+export const insertTraitementSchema = createInsertSchema(traitements).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertTransactionSchema = createInsertSchema(transactions).omit({
   id: true,
   createdAt: true,
@@ -555,3 +560,5 @@ export type InsertEmploye = z.infer<typeof insertEmployeSchema>;
 export type Employe = typeof employes.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
+export type InsertTraitement = z.infer<typeof insertTraitementSchema>;
+export type Traitement = typeof traitements.$inferSelect;

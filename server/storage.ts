@@ -41,6 +41,8 @@ import {
   type InsertEmploye,
   type Transaction,
   type InsertTransaction,
+  type Traitement,
+  type InsertTraitement,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte, like, count, sum, avg } from "drizzle-orm";
@@ -95,6 +97,13 @@ export interface IStorage {
   getEmployes(): Promise<Employe[]>;
   createEmploye(employe: InsertEmploye): Promise<Employe>;
   updateEmploye(id: string, employe: Partial<InsertEmploye>): Promise<Employe>;
+  deleteEmploye(id: string): Promise<void>;
+
+  // Traitements
+  getTraitements(): Promise<Traitement[]>;
+  createTraitement(traitement: InsertTraitement): Promise<Traitement>;
+  updateTraitement(id: string, traitement: Partial<InsertTraitement>): Promise<Traitement>;
+  deleteTraitement(id: string): Promise<void>;
 
   // Transactions
   getTransactions(): Promise<Transaction[]>;
@@ -333,6 +342,33 @@ export class DatabaseStorage implements IStorage {
 
   async getTransactionsByCompte(compteId: string): Promise<Transaction[]> {
     return await db.select().from(transactions).where(eq(transactions.compteId, compteId));
+  }
+
+  async deleteEmploye(id: string): Promise<void> {
+    await db.delete(employes).where(eq(employes.id, id));
+  }
+
+  // Traitements
+  async getTraitements(): Promise<Traitement[]> {
+    return await db.select().from(traitements).orderBy(desc(traitements.dateDebut));
+  }
+
+  async createTraitement(traitement: InsertTraitement): Promise<Traitement> {
+    const [newTraitement] = await db.insert(traitements).values(traitement).returning();
+    return newTraitement;
+  }
+
+  async updateTraitement(id: string, traitement: Partial<InsertTraitement>): Promise<Traitement> {
+    const [updatedTraitement] = await db
+      .update(traitements)
+      .set(traitement)
+      .where(eq(traitements.id, id))
+      .returning();
+    return updatedTraitement;
+  }
+
+  async deleteTraitement(id: string): Promise<void> {
+    await db.delete(traitements).where(eq(traitements.id, id));
   }
 
   // Dashboard metrics
