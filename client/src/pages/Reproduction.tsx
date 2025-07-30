@@ -74,7 +74,7 @@ export default function Reproduction() {
   });
 
   const getLapinName = (lapinId: string) => {
-    const lapin = lapins.find((l: any) => l.id === lapinId);
+    const lapin = (lapins as any[]).find((l: any) => l.id === lapinId);
     return lapin ? lapin.identifiant : lapinId;
   };
 
@@ -118,7 +118,7 @@ export default function Reproduction() {
     }
   };
 
-  const filteredAccouplements = accouplements.filter((acc: any) => {
+  const filteredAccouplements = (accouplements as any[]).filter((acc: any) => {
     const femelleNom = getLapinName(acc.femelleId);
     const maleNom = getLapinName(acc.maleId);
     const matchesSearch = femelleNom.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -172,7 +172,7 @@ export default function Reproduction() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Accouplements</p>
-                <p className="text-2xl font-bold text-gray-900">{accouplements.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{(accouplements as any[]).length}</p>
               </div>
             </div>
           </CardContent>
@@ -187,7 +187,7 @@ export default function Reproduction() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">En gestation</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {accouplements.filter((a: any) => getAccouplementStatus(a) === "en_cours").length}
+                  {(accouplements as any[]).filter((a: any) => getAccouplementStatus(a) === "en_cours").length}
                 </p>
               </div>
             </div>
@@ -203,7 +203,7 @@ export default function Reproduction() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">À terme</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  {accouplements.filter((a: any) => ["terme", "proche"].includes(getAccouplementStatus(a))).length}
+                  {(accouplements as any[]).filter((a: any) => ["terme", "proche"].includes(getAccouplementStatus(a))).length}
                 </p>
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function Reproduction() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Naissances</p>
-                <p className="text-2xl font-bold text-gray-900">{misesBas.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{(misesBas as any[]).length}</p>
               </div>
             </div>
           </CardContent>
@@ -381,7 +381,7 @@ export default function Reproduction() {
                   </CardContent>
                 </Card>
               ))
-            ) : misesBas.length === 0 ? (
+            ) : (misesBas as any[]).length === 0 ? (
               <div className="col-span-full text-center py-12">
                 <Baby className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune mise-bas enregistrée</h3>
@@ -390,8 +390,8 @@ export default function Reproduction() {
                 </p>
               </div>
             ) : (
-              misesBas.map((miseBas: any) => {
-                const accouplement = accouplements.find((a: any) => a.id === miseBas.accouplementId);
+              (misesBas as any[]).map((miseBas: any) => {
+                const accouplement = (accouplements as any[]).find((a: any) => a.id === miseBas.accouplementId);
                 
                 return (
                   <Card key={miseBas.id} className="hover:shadow-lg transition-shadow">
@@ -451,7 +451,7 @@ export default function Reproduction() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {accouplements
+                {(accouplements as any[])
                   .filter((a: any) => a.dateMiseBasPrevue && getAccouplementStatus(a) !== "echec")
                   .sort((a: any, b: any) => new Date(a.dateMiseBasPrevue).getTime() - new Date(b.dateMiseBasPrevue).getTime())
                   .map((accouplement: any) => {
