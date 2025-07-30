@@ -272,7 +272,7 @@ export default function LapinForm({ lapin, onSuccess, onCancel }: LapinFormProps
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Aucun enclos</SelectItem>
+                      <SelectItem value="none">Aucun enclos</SelectItem>
                       {enclos.map((e: any) => (
                         <SelectItem key={e.id} value={e.id}>
                           {e.nom} ({e.type})
