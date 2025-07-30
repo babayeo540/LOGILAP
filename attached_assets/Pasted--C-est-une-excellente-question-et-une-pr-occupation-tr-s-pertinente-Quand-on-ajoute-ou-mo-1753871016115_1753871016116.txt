@@ -1,0 +1,50 @@
+-----
+
+C'est une excellente question et une préoccupation très pertinente \! Quand on ajoute ou modifie des fonctionnalités dans un logiciel existant, la **non-régression** (c'est-à-dire s'assurer que les nouvelles modifications n'introduisent pas de bugs ou ne cassent pas les fonctionnalités existantes) est primordiale.
+
+Pour communiquer cela à l'agent, il faut insister sur les principes de **développement modulaire**, de **tests**, et de **gestion des versions**.
+
+Voici comment tu pourrais formuler ta demande pour que l'agent intègre ces nouvelles exigences de navigation sans compromettre l'intégrité de LAPGEST-PRO 2.0 :
+
+-----
+
+## Instructions pour une Intégration Sécurisée des Mises à Jour
+
+```
+**Contexte de la Mise à Jour :**
+Nous avons identifié un problème crucial de navigation dans le logiciel LAPGEST-PRO 2.0 : l'absence de boutons "Retour" ou de flèches de navigation arrière, rendant la navigation entre les écrans difficile et frustrante.
+
+**Objectif de la Mise à Jour :**
+Intégrer une navigation arrière fluide et intuitive (boutons "Retour", flèches de navigation, gestion correcte de l'historique du navigateur) dans l'interface utilisateur de LAPGEST-PRO 2.0.
+
+**Exigence Fondamentale : Maintenir l'Intégrité du Logiciel Existante**
+Il est **absolument impératif** que cette mise à jour de la navigation soit effectuée **sans aucune régression** et **sans compromettre l'intégrité, la stabilité ou les fonctionnalités déjà implémentées** dans LAPGEST-PRO 2.0, telles que décrites dans le cahier des charges détaillé. Toutes les fonctionnalités existantes (gestion des lapins, santé, stocks, ventes, dépenses, banque, personnel, etc.) doivent continuer à fonctionner parfaitement après cette modification.
+
+**Stratégie d'Intégration et Précautions Requises :**
+
+1.  **Approche Modulaire et Isolé :**
+    * Concentrer les modifications sur les composants de l'interface utilisateur (Frontend React) qui gèrent la navigation et les barres d'outils.
+    * S'assurer que les changements sont encapsulés et ne se propagent pas de manière non intentionnelle à d'autres parties de l'application.
+
+2.  **Utilisation des Bonnes Pratiques de Développement :**
+    * **Gestion de l'État :** Si la navigation implique des changements d'état complexes, s'assurer que ces changements sont gérés proprement (par exemple, avec React Context, Redux, ou des hooks d'état local).
+    * **Routing Robuste :** Utiliser correctement `React Router DOM` pour que les URLs reflètent l'état de l'application et que les boutons précédent/suivant du navigateur fonctionnent comme prévu.
+    * **Composants Réutilisables :** Si des boutons "Retour" similaires sont nécessaires à plusieurs endroits, créer un composant React réutilisable pour garantir la cohérence et faciliter la maintenance.
+
+3.  **Phase de Tests Systématiques (Non-Régression) :**
+    * **Avant les modifications :** Exécuter un ensemble complet de tests (manuels ou automatisés si disponibles) sur toutes les fonctionnalités existantes pour établir une référence de bon fonctionnement.
+    * **Après les modifications :** Effectuer des tests de **non-régression exhaustifs** sur *toutes* les fonctionnalités de LAPGEST-PRO 2.0 (chaque module, chaque formulaire, chaque affichage de données, chaque calcul, chaque enregistrement/modification/suppression, et bien sûr la navigation entre tous les onglets et les retours arrière).
+    * **Vérifier particulièrement :**
+        * Le fonctionnement du menu de navigation principal.
+        * L'apparition et le bon fonctionnement des nouveaux boutons "Retour" ou flèches.
+        * La gestion de l'historique du navigateur.
+        * L'intégrité des données après navigation.
+        * Que les fonctionnalités complexes (génération de pedigree, calculs financiers, gestion de l'épargne) ne sont pas affectées.
+
+**Livrables Spécifiques pour cette Mise à Jour :**
+
+* Les modifications de code implémentant les améliorations de navigation.
+* Une note expliquant les modifications apportées et la méthodologie utilisée pour assurer la non-régression.
+* Les résultats des tests de non-régression effectués, attestant que l'intégrité du logiciel est maintenue.
+
+```

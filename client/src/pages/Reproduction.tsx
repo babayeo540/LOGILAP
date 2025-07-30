@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import AccouplementForm from "../components/AccouplementForm";
 import MiseBasForm from "../components/MiseBasForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Reproduction() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -130,14 +131,20 @@ export default function Reproduction() {
   });
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion de la Reproduction</h1>
-          <p className="text-gray-600">Suivez les accouplements et les naissances</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="reproduction"
+        moduleTitle="Gestion de la Reproduction"
+        moduleDescription="Suivez les accouplements et les naissances"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <div className="flex gap-2">
           <Button 
             onClick={() => setShowAccouplementForm(true)}
             className="bg-primary-600 hover:bg-primary-700"
@@ -519,6 +526,7 @@ export default function Reproduction() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

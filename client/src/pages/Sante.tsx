@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import SoinForm from "../components/SoinForm";
 import VaccinForm from "../components/VaccinForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Sante() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -146,14 +147,20 @@ export default function Sante() {
   ).length;
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Suivi Sanitaire</h1>
-          <p className="text-gray-600">Gérez la santé et les soins de votre cheptel</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="sante"
+        moduleTitle="Suivi Sanitaire"
+        moduleDescription="Gérez la santé et les soins de votre cheptel"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <div className="flex gap-2">
           <Button 
             onClick={() => setShowSoinForm(true)}
             className="bg-red-600 hover:bg-red-700"
@@ -500,6 +507,7 @@ export default function Sante() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

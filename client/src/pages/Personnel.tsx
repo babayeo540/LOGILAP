@@ -34,6 +34,7 @@ import {
 import EmployeForm from "../components/EmployeForm";
 import TacheForm from "../components/TacheForm";
 import EpargneForm from "../components/EpargneForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Personnel() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -214,14 +215,20 @@ export default function Personnel() {
   const totalEpargne = mockEmployes.reduce((sum, e) => sum + e.soldeEpargne, 0);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion du Personnel</h1>
-          <p className="text-gray-600">Gérez vos employés, tâches et épargne salariale</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="personnel"
+        moduleTitle="Gestion du Personnel"
+        moduleDescription="Gérez vos employés, tâches et épargne"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <div className="flex gap-2">
           <Button 
             onClick={() => setShowEmployeForm(true)}
             className="bg-primary-600 hover:bg-primary-700"
@@ -680,6 +687,7 @@ export default function Personnel() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

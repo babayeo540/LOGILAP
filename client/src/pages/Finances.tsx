@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import VenteForm from "../components/VenteForm";
 import DepenseForm from "../components/DepenseForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Finances() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -108,14 +109,20 @@ export default function Finances() {
   });
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion Financière</h1>
-          <p className="text-gray-600">Suivez vos ventes, achats et la rentabilité</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="finances"
+        moduleTitle="Gestion Financière"
+        moduleDescription="Suivez vos ventes, achats et la rentabilité"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <div className="flex gap-2">
           <Button 
             onClick={() => setShowVenteForm(true)}
             className="bg-green-600 hover:bg-green-700"
@@ -435,6 +442,7 @@ export default function Finances() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

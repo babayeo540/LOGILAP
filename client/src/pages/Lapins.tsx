@@ -29,6 +29,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import LapinForm from "@/components/LapinForm";
 import LapinDetails from "@/components/LapinDetails";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Lapins() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -114,21 +115,27 @@ export default function Lapins() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Lapins</h1>
-          <p className="text-gray-600">Gérez votre cheptel et suivez vos animaux</p>
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="lapins"
+        moduleTitle="Gestion des Lapins"
+        moduleDescription="Gérez votre cheptel et suivez vos animaux"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="bg-primary-600 hover:bg-primary-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nouveau Lapin
+          </Button>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)}
-          className="bg-primary-600 hover:bg-primary-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nouveau Lapin
-        </Button>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -382,6 +389,7 @@ export default function Lapins() {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

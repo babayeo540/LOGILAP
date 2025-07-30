@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import ArticleForm from "../components/ArticleForm";
 import MouvementStockForm from "../components/MouvementStockForm";
+import ModuleNavigation from "@/components/ModuleNavigation";
 
 export default function Stocks() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -190,14 +191,20 @@ export default function Stocks() {
   const valeurTotaleStock = mockArticles.reduce((sum, a) => sum + (a.stockActuel * a.prixUnitaire), 0);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gestion des Stocks</h1>
-          <p className="text-gray-600">Gérez votre inventaire, approvisionnements et consommations</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gray-50">
+      <ModuleNavigation 
+        currentModule="stocks"
+        moduleTitle="Gestion des Stocks"
+        moduleDescription="Gérez votre inventaire, approvisionnements et consommations"
+      />
+      
+      <div className="p-6 space-y-6">
+        {/* Header Actions */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span className="text-gray-600">Actions rapides</span>
+          </div>
+          <div className="flex gap-2">
           <Button 
             onClick={() => setShowArticleForm(true)}
             className="bg-primary-600 hover:bg-primary-700"
@@ -212,8 +219,8 @@ export default function Stocks() {
             <ShoppingCart className="w-4 h-4 mr-2" />
             Mouvement Stock
           </Button>
+          </div>
         </div>
-      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -596,6 +603,7 @@ export default function Stocks() {
           />
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
