@@ -235,6 +235,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/ventes/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteVente(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting vente:", error);
+      res.status(500).json({ message: "Failed to delete vente" });
+    }
+  });
+
   // Dépenses routes
   app.get('/api/depenses', isAuthenticated, async (req, res) => {
     try {
@@ -257,6 +267,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error creating depense:", error);
       res.status(500).json({ message: "Failed to create depense" });
+    }
+  });
+
+  app.delete('/api/depenses/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteDepense(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting depense:", error);
+      res.status(500).json({ message: "Failed to delete depense" });
     }
   });
 

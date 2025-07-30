@@ -39,10 +39,10 @@ export default function Finances() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Mutations pour supprimer les transactions
-  const deleteTransactionMutation = useMutation({
+  // Mutations pour supprimer les ventes
+  const deleteVenteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const response = await fetch(`/api/transactions/${id}`, {
+      const response = await fetch(`/api/ventes/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -53,40 +53,57 @@ export default function Finances() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/ventes"] });
       toast({
         title: "Succès",
-        description: "Transaction supprimée avec succès",
+        description: "Vente supprimée avec succès",
       });
     },
   });
 
-  // Mock data for now - would come from API in real implementation
+  // Mutations pour supprimer les dépenses  
+  const deleteDepenseMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await fetch(`/api/depenses/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur lors de la suppression");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/depenses"] });
+      toast({
+        title: "Succès",
+        description: "Dépense supprimée avec succès",
+      });
+    },
+  });
+
+  // Fetch data from API
+  const { data: ventes = [], isLoading: loadingVentes } = useQuery({
+    queryKey: ["/api/ventes"],
+  });
+
+  const { data: depenses = [], isLoading: loadingDepenses } = useQuery({
+    queryKey: ["/api/depenses"],
+  });
+
+  // Combine ventes and depenses into transactions
   const mockTransactions = [
-    {
-      id: "1",
+    ...ventes.map((vente: any) => ({
+      ...vente,
       type: "vente",
-      description: "Vente de 3 lapins",
-      montant: 45.00,
-      date: "2024-07-25",
-      status: "payé"
-    },
-    {
-      id: "2", 
+      montant: vente.montantTotal || vente.montant
+    })),
+    ...depenses.map((depense: any) => ({
+      ...depense,
       type: "depense",
-      description: "Achat aliment granulés 25kg",
-      montant: -28.50,
-      date: "2024-07-20",
-      status: "payé"
-    },
-    {
-      id: "3",
-      type: "vente",
-      description: "Vente lapins reproducteurs",
-      montant: 120.00,
-      date: "2024-07-18",
-      status: "en_attente"
-    }
+      montant: -(depense.montant || 0)
+    }))
   ];
 
   const formatCurrency = (amount: number) => {
@@ -339,7 +356,11 @@ export default function Finances() {
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                             onClick={() => {
                               if (confirm("Êtes-vous sûr de vouloir supprimer cette transaction ?")) {
-                                deleteTransactionMutation.mutate(transaction.id);
+                                if (transaction.type === "vente") {
+                                  deleteVenteMutation.mutate(transaction.id);
+                                } else {
+                                  deleteDepenseMutation.mutate(transaction.id);
+                                }
                               }
                             }}
                           >

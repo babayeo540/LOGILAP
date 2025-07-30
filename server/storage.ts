@@ -81,11 +81,13 @@ export interface IStorage {
   // Ventes
   getVentes(): Promise<Vente[]>;
   createVente(vente: InsertVente): Promise<Vente>;
+  deleteVente(id: string): Promise<void>;
   getVentesByDate(startDate: Date, endDate: Date): Promise<Vente[]>;
 
   // Dépenses
   getDepenses(): Promise<Depense[]>;
   createDepense(depense: InsertDepense): Promise<Depense>;
+  deleteDepense(id: string): Promise<void>;
   getDepensesByCategorie(categorieId: string): Promise<Depense[]>;
   getDepensesByDate(startDate: Date, endDate: Date): Promise<Depense[]>;
 
@@ -258,6 +260,10 @@ export class DatabaseStorage implements IStorage {
     return newVente;
   }
 
+  async deleteVente(id: string): Promise<void> {
+    await db.delete(ventes).where(eq(ventes.id, id));
+  }
+
   async getVentesByDate(startDate: Date, endDate: Date): Promise<Vente[]> {
     return await db
       .select()
@@ -276,6 +282,10 @@ export class DatabaseStorage implements IStorage {
   async createDepense(depense: InsertDepense): Promise<Depense> {
     const [newDepense] = await db.insert(depenses).values(depense).returning();
     return newDepense;
+  }
+
+  async deleteDepense(id: string): Promise<void> {
+    await db.delete(depenses).where(eq(depenses.id, id));
   }
 
   async getDepensesByCategorie(categorieId: string): Promise<Depense[]> {
