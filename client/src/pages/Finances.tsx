@@ -92,14 +92,17 @@ export default function Finances() {
     queryKey: ["/api/depenses"],
   });
 
-  // Combine ventes and depenses into transactions
-  const mockTransactions = [
-    ...ventes.map((vente: any) => ({
+  // Combine ventes and depenses into real transactions
+  const ventesArray = Array.isArray(ventes) ? ventes : [];
+  const depensesArray = Array.isArray(depenses) ? depenses : [];
+  
+  const realTransactions = [
+    ...ventesArray.map((vente: any) => ({
       ...vente,
       type: "vente",
       montant: vente.montantTotal || vente.montant
     })),
-    ...depenses.map((depense: any) => ({
+    ...depensesArray.map((depense: any) => ({
       ...depense,
       type: "depense",
       montant: -(depense.montant || 0)
@@ -131,17 +134,17 @@ export default function Finances() {
   };
 
   // Calculs des totaux
-  const totalVentes = mockTransactions
+  const totalVentes = realTransactions
     .filter(t => t.type === "vente" && t.status === "payé")
     .reduce((sum, t) => sum + t.montant, 0);
 
-  const totalDepenses = Math.abs(mockTransactions
+  const totalDepenses = Math.abs(realTransactions
     .filter(t => t.type === "depense" && t.status === "payé")
     .reduce((sum, t) => sum + t.montant, 0));
 
   const beneficeNet = totalVentes - totalDepenses;
 
-  const filteredTransactions = mockTransactions.filter((transaction: any) => {
+  const filteredTransactions = realTransactions.filter((transaction: any) => {
     const matchesSearch = transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === "all" || transaction.type === typeFilter;
     return matchesSearch && matchesType;
@@ -238,7 +241,7 @@ export default function Finances() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Transactions</p>
-                <p className="text-2xl font-bold text-gray-900">{mockTransactions.length}</p>
+                <p className="text-2xl font-bold text-gray-900">{realTransactions.length}</p>
               </div>
             </div>
           </CardContent>
