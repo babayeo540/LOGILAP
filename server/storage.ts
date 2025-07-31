@@ -45,7 +45,7 @@ import {
   type InsertTraitement,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, gte, lte, like, count, sum, avg } from "drizzle-orm";
+import { eq, desc, and, gte, lte, like, count, sum, avg, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -578,7 +578,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User management methods for Paramètres
-  async updateUser(id: string, userData: Partial<InsertUser>): Promise<User> {
+  async updateUser(id: string, userData: Partial<UpsertUser>): Promise<User> {
     const [updatedUser] = await db
       .update(users)
       .set({ ...userData, updatedAt: new Date() })
@@ -623,7 +623,7 @@ export class DatabaseStorage implements IStorage {
         db.select({ count: sql<number>`count(*)` }).from(ventes),
         db.select({ count: sql<number>`count(*)` }).from(depenses),
         db.select({ count: sql<number>`count(*)` }).from(employes),
-        db.select({ count: sql<number>`count(*)` }).from(articles)
+        db.select({ count: sql<number>`count(*)` }).from(materiel)
       ]);
 
       return {
@@ -669,7 +669,7 @@ export class DatabaseStorage implements IStorage {
         db.select().from(ventes),
         db.select().from(depenses),
         db.select().from(employes),
-        db.select().from(articles),
+        db.select().from(materiel),
         db.select().from(accouplements),
         db.select().from(traitements)
       ]);
@@ -683,7 +683,7 @@ export class DatabaseStorage implements IStorage {
           ventes: allVentes,
           depenses: allDepenses,
           employes: allEmployes,
-          articles: allArticles,
+          materiel: allArticles,
           accouplements: allAccouplements,
           traitements: allTraitements
         },
@@ -693,7 +693,7 @@ export class DatabaseStorage implements IStorage {
           totalVentes: allVentes.length,
           totalDepenses: allDepenses.length,
           totalEmployes: allEmployes.length,
-          totalArticles: allArticles.length,
+          totalMateriel: allArticles.length,
           totalAccouplements: allAccouplements.length,
           totalTraitements: allTraitements.length
         }

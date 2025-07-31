@@ -33,7 +33,7 @@ export default function Rapports() {
   const [rapportType, setRapportType] = useState("production");
 
   // Données réelles depuis l'API
-  const { data: dashboardMetrics } = useQuery({
+  const { data: dashboardMetrics = {} } = useQuery({
     queryKey: ['/api/dashboard/metrics'],
   });
 
@@ -58,53 +58,59 @@ export default function Rapports() {
   });
 
   // Calcul des statistiques réelles basées sur les données
+  const lapinsArray = Array.isArray(lapins) ? lapins : [];
+  const ventesArray = Array.isArray(ventes) ? ventes : [];
+  const depensesArray = Array.isArray(depenses) ? depenses : [];
+  const traitementsArray = Array.isArray(traitements) ? traitements : [];
+  const accouplementsArray = Array.isArray(accouplements) ? accouplements : [];
+
   const realStats = {
     production: {
-      totalLapins: dashboardMetrics?.totalLapins || lapins.length || 0,
-      reproducteurs: lapins.filter((l: any) => l.status === 'reproducteur').length || 0,
-      engraissement: lapins.filter((l: any) => l.status === 'engraissement').length || 0,
-      stockVendre: lapins.filter((l: any) => l.status === 'stock_a_vendre').length || 0,
-      naissancesMonth: accouplements.length || 0,
-      decessMonth: lapins.filter((l: any) => l.status === 'decede').length || 0,
-      tauxNatalite: accouplements.length > 0 ? 85.0 : 0,
-      tauxSurvie: lapins.length > 0 ? 92.5 : 0,
+      totalLapins: (dashboardMetrics as any)?.totalLapins || lapinsArray.length || 0,
+      reproducteurs: lapinsArray.filter((l: any) => l.status === 'reproducteur').length || 0,
+      engraissement: lapinsArray.filter((l: any) => l.status === 'engraissement').length || 0,
+      stockVendre: lapinsArray.filter((l: any) => l.status === 'stock_a_vendre').length || 0,
+      naissancesMonth: accouplementsArray.length || 0,
+      decessMonth: lapinsArray.filter((l: any) => l.status === 'decede').length || 0,
+      tauxNatalite: accouplementsArray.length > 0 ? 85.0 : 0,
+      tauxSurvie: lapinsArray.length > 0 ? 92.5 : 0,
       poidsVenteMoyen: 2.5,
       gmqMoyen: 32.0
     },
     financier: {
-      chiffreAffaires: dashboardMetrics?.monthlyRevenue || ventes.reduce((sum: number, v: any) => sum + (v.montantTotal || 0), 0),
-      beneficeNet: dashboardMetrics?.netProfit || 0,
-      ventesLapins: ventes.reduce((sum: number, v: any) => sum + (v.montantTotal || 0), 0),
+      chiffreAffaires: (dashboardMetrics as any)?.monthlyRevenue || ventesArray.reduce((sum: number, v: any) => sum + (v.montantTotal || 0), 0),
+      beneficeNet: (dashboardMetrics as any)?.netProfit || 0,
+      ventesLapins: ventesArray.reduce((sum: number, v: any) => sum + (v.montantTotal || 0), 0),
       ventesFumier: 0,
-      totalDepenses: dashboardMetrics?.monthlyExpenses || depenses.reduce((sum: number, d: any) => sum + (d.montant || 0), 0),
+      totalDepenses: (dashboardMetrics as any)?.monthlyExpenses || depensesArray.reduce((sum: number, d: any) => sum + (d.montant || 0), 0),
       margeOperationnelle: 0,
       coutProduction: 0,
-      prixVenteMoyen: ventes.length > 0 ? ventes.reduce((sum: number, v: any) => sum + (v.prixUnitaire || 0), 0) / ventes.length : 0
+      prixVenteMoyen: ventesArray.length > 0 ? ventesArray.reduce((sum: number, v: any) => sum + (v.prixUnitaire || 0), 0) / ventesArray.length : 0
     },
     sanitaire: {
-      traitements: traitements.length || 0,
-      vaccinations: traitements.filter((t: any) => t.typeTraitement === 'vaccination').length || 0,
-      consultations: traitements.filter((t: any) => t.typeTraitement === 'consultation').length || 0,
-      mortalite: lapins.length > 0 ? ((lapins.filter((l: any) => l.status === 'decede').length / lapins.length) * 100) : 0,
+      traitements: traitementsArray.length || 0,
+      vaccinations: traitementsArray.filter((t: any) => t.typeTraitement === 'vaccination').length || 0,
+      consultations: traitementsArray.filter((t: any) => t.typeTraitement === 'consultation').length || 0,
+      mortalite: lapinsArray.length > 0 ? ((lapinsArray.filter((l: any) => l.status === 'decede').length / lapinsArray.length) * 100) : 0,
       principalesMaladies: [
-        { nom: "Coccidiose", cas: traitements.filter((t: any) => t.maladie?.toLowerCase().includes('coccidiose')).length },
-        { nom: "Pneumonie", cas: traitements.filter((t: any) => t.maladie?.toLowerCase().includes('pneumonie')).length },
-        { nom: "Diarrhée", cas: traitements.filter((t: any) => t.maladie?.toLowerCase().includes('diarrhée')).length }
+        { nom: "Coccidiose", cas: traitementsArray.filter((t: any) => t.maladie?.toLowerCase().includes('coccidiose')).length },
+        { nom: "Pneumonie", cas: traitementsArray.filter((t: any) => t.maladie?.toLowerCase().includes('pneumonie')).length },
+        { nom: "Diarrhée", cas: traitementsArray.filter((t: any) => t.maladie?.toLowerCase().includes('diarrhée')).length }
       ],
-      coutsSanitaires: traitements.reduce((sum: number, t: any) => sum + (t.cout || 0), 0)
+      coutsSanitaires: traitementsArray.reduce((sum: number, t: any) => sum + (t.cout || 0), 0)
     },
     reproducteur: {
-      femelles: lapins.filter((l: any) => l.sexe === 'femelle' && l.status === 'reproducteur').length || 0,
-      males: lapins.filter((l: any) => l.sexe === 'male' && l.status === 'reproducteur').length || 0,
-      saillieFecondite: accouplements.length > 0 ? 80.0 : 0,
-      prolificite: accouplements.length > 0 ? 7.5 : 0,
-      sevrageEffectue: lapins.filter((l: any) => l.status === 'sevré').length || 0,
-      tauxSevrage: lapins.length > 0 ? 85.0 : 0,
+      femelles: lapinsArray.filter((l: any) => l.sexe === 'femelle' && l.status === 'reproducteur').length || 0,
+      males: lapinsArray.filter((l: any) => l.sexe === 'male' && l.status === 'reproducteur').length || 0,
+      saillieFecondite: accouplementsArray.length > 0 ? 80.0 : 0,
+      prolificite: accouplementsArray.length > 0 ? 7.5 : 0,
+      sevrageEffectue: lapinsArray.filter((l: any) => l.status === 'sevré').length || 0,
+      tauxSevrage: lapinsArray.length > 0 ? 85.0 : 0,
       intervalleGeneration: 75,
-      femelleSaillie: accouplements.length || 0,
-      fecondite: accouplements.length > 0 ? 80.0 : 0,
+      femelleSaillie: accouplementsArray.length || 0,
+      fecondite: accouplementsArray.length > 0 ? 80.0 : 0,
       intervallePortees: 45,
-      performeurs: lapins.filter((l: any) => l.status === 'reproducteur').slice(0, 3).map((l: any, index: number) => ({
+      performeurs: lapinsArray.filter((l: any) => l.status === 'reproducteur').slice(0, 3).map((l: any, index: number) => ({
         id: l.identifiant || `R${index + 1}`,
         nom: l.nom || `Reproducteur ${index + 1}`,
         portees: Math.floor(Math.random() * 8) + 1,
@@ -119,8 +125,8 @@ export default function Rapports() {
       densiteOccupation: 0,
       surfaceTotale: 0,
       surfaceUtilisee: 0,
-      ratioMF: lapins.filter((l: any) => l.sexe === 'male').length > 0 ? 
-        lapins.filter((l: any) => l.sexe === 'femelle').length / lapins.filter((l: any) => l.sexe === 'male').length : 0,
+      ratioMF: lapinsArray.filter((l: any) => l.sexe === 'male').length > 0 ? 
+        lapinsArray.filter((l: any) => l.sexe === 'femelle').length / lapinsArray.filter((l: any) => l.sexe === 'male').length : 0,
       ageSevrageMin: 35,
       ageSevrageMax: 42,
       poidsSevrageMin: 1.2,
