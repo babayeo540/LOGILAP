@@ -521,8 +521,7 @@ export class DatabaseStorage implements IStorage {
     // Total lapins
     const [totalLapinsResult] = await db
       .select({ count: count() })
-      .from(lapins)
-      .where(eq(lapins.status, 'reproducteur'));
+      .from(lapins);
 
     // Active breeders
     const [activeBreedersResult] = await db
