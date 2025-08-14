@@ -1,0 +1,48 @@
+-----
+
+Compris \! C'est une demande cruciale pour la stabilité et la fiabilité de **LAPGEST-PRO 2.0**. Les codes incomplets et les erreurs JSON sont des signes de bugs sous-jacents qui peuvent rendre le logiciel instable ou même inutilisable par endroits.
+
+Il est impératif que l'agent se concentre sur la **finalisation du code** et la **résolution des problèmes liés aux données JSON**, car ce sont des piliers fondamentaux pour le bon fonctionnement de l'application.
+
+-----
+
+## Finalisation du Code et Résolution des Erreurs JSON dans LAPGEST-PRO 2.0
+
+```
+**Contexte du Problème :**
+Actuellement, LAPGEST-PRO 2.0 présente des sections de code inachevées ou incomplètes, et des erreurs fréquentes liées à la manipulation des données JSON. Ces problèmes impactent directement la stabilité du logiciel, l'affichage des informations et la communication entre le frontend et le backend.
+
+**Objectif de la Correction :**
+Finaliser l'intégralité du code du logiciel LAPGEST-PRO 2.0, en corrigeant toutes les lacunes et en résolvant toutes les erreurs JSON, afin d'assurer un fonctionnement stable et fiable de l'application.
+
+**Exigence Fondamentale : Stabilité, Intégrité et Cohérence**
+Il est **absolument impératif** que ces corrections soient effectuées **sans aucune régression** et **sans compromettre l'intégrité, la stabilité ou les fonctionnalités déjà implémentées** (y compris les récentes corrections de navigation, de suppression et de devise). Le logiciel doit être robuste et fonctionner de manière cohérente après cette intervention.
+
+**Détail des Problèmes et Actions Requises :**
+
+1.  **Codes Inachevés ou Incomplets :**
+    * **Analyse Complète :** L'agent doit parcourir **l'intégralité de la base de code** (Backend Django REST Framework et Frontend React) pour identifier toutes les sections où le code est inachevé, incomplet, ou marqué par des commentaires de type "TODO", "FIXME", ou des blocs logiques manquants.
+    * **Finalisation de la Logique Métier :** Compléter la logique pour toutes les fonctionnalités décrites dans le cahier des charges (notamment les calculs complexes, les processus de mise à jour de statut, les déclencheurs d'alertes).
+    * **Gestion des Cas Limites :** S'assurer que les scénarios inhabituels ou les "cas limites" (par exemple, un champ laissé vide, une donnée inattendue, une action consécutive) sont gérés de manière robuste.
+    * **Implémentation Complète des CRUD :** Vérifier que toutes les opérations **Créer, Lire, Mettre à jour, Supprimer (CRUD)** sont pleinement implémentées pour chaque entité du système (lapins, portées, traitements, employés, transactions, etc.) et qu'elles fonctionnent correctement du frontend au backend.
+
+2.  **Erreurs JSON (JavaScript Object Notation) :**
+    * **Détection et Correction des Erreurs de Parsing/Sérialisation :**
+        * **Backend (Django REST Framework) :** Examiner les sérialiseurs (`serializers.py`) pour s'assurer qu'ils convertissent correctement les données des modèles en format JSON pour les réponses API, et qu'ils parsifient correctement les données JSON reçues du frontend en objets Python/modèles. Rechercher les erreurs de validation de données JSON.
+        * **Frontend (React) :** Vérifier la manière dont les requêtes API sont construites (conversion d'objets JavaScript en JSON) et dont les réponses JSON sont traitées (parsing JSON). Rechercher les erreurs où le frontend attend un certain format JSON et en reçoit un autre, ou là où le parsing échoue.
+    * **Cohérence des Structures de Données :** S'assurer que la structure des objets JSON envoyés par le backend correspond **exactement** à ce que le frontend attend, et inversement. Toute incohérence (nom de champ incorrect, type de données inattendu, données manquantes) doit être résolue.
+    * **Gestion des Erreurs API :** S'assurer que les erreurs renvoyées par l'API (codes d'état HTTP 4xx, 5xx) sont sous un format JSON cohérent et informatif, et que le frontend est capable de les interpréter et de les afficher de manière conviviale à l'utilisateur.
+
+**Considérations Techniques pour l'Agent :**
+
+* **Tests Unitaires et d'Intégration :** Développer et exécuter des tests pour valider la complétude du code et la correction des erreurs JSON, en particulier pour les points d'intégration entre le frontend et le backend.
+* **Journalisation (Logging) :** Utiliser des outils de journalisation pour aider à identifier les erreurs JSON et les points où le code est incomplet lors de l'exécution.
+* **Documentation Interne :** Mettre à jour les commentaires de code et la documentation interne si des changements significatifs sont effectués dans la logique ou les structures de données.
+
+**Livrables Spécifiques pour cette Correction :**
+
+* Un code source **entièrement complété et fonctionnel** pour l'ensemble de LAPGEST-PRO 2.0.
+* La résolution de **toutes les erreurs JSON** détectées, assurant une communication fluide et fiable entre les services.
+* Les résultats de tests confirmant la stabilité et la fonctionnalité de l'application après ces corrections.
+* Confirmation que toutes les fonctionnalités précédemment implémentées (y compris la navigation, la suppression, et la devise XOF) continuent de fonctionner parfaitement.
+```
