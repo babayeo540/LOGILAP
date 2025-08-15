@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/pg-core';
+import { drizzle } from 'drizzle-orm'; // <-- C'est ici que l'importation est corrigée
+import { NodePgDatabase, drizzle as drizzlePg } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
 // Vérifie si la variable d'environnement DATABASE_URL est bien définie
@@ -19,4 +20,4 @@ export const pool = new Pool({
 });
 
 // Initialise Drizzle-ORM avec le pool de connexions et le schéma
-export const db = drizzle(pool, { schema });
+export const db = drizzlePg(pool, { schema });
