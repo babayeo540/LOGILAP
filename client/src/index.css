@@ -66,13 +66,11 @@
 
 @layer base {
   * {
-    /* CORRECTION ICI */
-    /* Utilisez `border` pour la bordure par défaut et `border-border` pour la couleur */
     @apply border border-[var(--border)];
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-[var(--background)] text-[var(--foreground)];
   }
 }
 
