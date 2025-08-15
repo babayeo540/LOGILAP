@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPGEST-PRO 2.0 - Système de Gestion Cunicole</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d'
+                        },
+                        earth: {
+                            50: '#fef7ed',
+                            100: '#fed7aa',
+                            500: '#a3703b',
+                            600: '#92400e'
+                        },
+                        sage: {
+                            100: '#f1f5f9',
+                            500: '#9ca3af',
+                            600: '#6b7280'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- @COMPONENT: AppLayout -->
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <!-- @COMPONENT: Sidebar -->
+        <aside class="hidden lg:flex lg:flex-shrink-0">
+            <div class="flex flex-col w-72 bg-white border-r border-gray-200 shadow-sm">
+                <!-- Logo Header -->
+                <div class="flex items-center justify-center h-16 px-6 border-b border-gray-200 bg-gradient-to-r from-primary-500 to-primary-600">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                            <i class="fas fa-rabbit text-primary-600 text-xl"></i>
+                        </div>
+                        <div class="text-white">
+                            <h1 class="text-lg font-bold">LAPGEST-PRO</h1>
+                            <p class="text-xs opacity-90">v2.0 - Gestion Cunicole</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+                    <!-- Dashboard -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg">
+                        <i class="fas fa-chart-line w-5 h-5 mr-3"></i>
+                        Tableau de Bord
+                    </a>
+                    
+                    <!-- Rabbit Management -->
+                    <div class="space-y-1">
+                        <div class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer">
+                            <i class="fas fa-rabbit w-5 h-5 mr-3 text-earth-500"></i>
+                            Gestion des Lapins
+                            <i class="fas fa-chevron-down ml-auto text-xs"></i>
+                        </div>
+                        <div class="ml-8 space-y-1">
+                            <a href="#" class="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Fiches Individuelles</a>
+                            <a href="#" class="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Enclos & Cages</a>
+                            <a href="#" class="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Reproduction</a>
+                            <a href="#" class="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Sevrage</a>
+                        </div>
+                    </div>
+
+                    <!-- Health Management -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-stethoscope w-5 h-5 mr-3 text-red-500"></i>
+                        Santé & Soins
+                    </a>
+
+                    <!-- Stock Management -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-boxes w-5 h-5 mr-3 text-amber-500"></i>
+                        Gestion des Stocks
+                    </a>
+
+                    <!-- Sales & Purchases -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-shopping-cart w-5 h-5 mr-3 text-blue-500"></i>
+                        Ventes & Achats
+                    </a>
+
+                    <!-- Personnel -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-users w-5 h-5 mr-3 text-purple-500"></i>
+                        Personnel
+                    </a>
+
+                    <!-- Expenses -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-receipt w-5 h-5 mr-3 text-orange-500"></i>
+                        Dépenses
+                    </a>
+
+                    <!-- Banking -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-university w-5 h-5 mr-3 text-green-500"></i>
+                        Trésorerie
+                    </a>
+
+                    <!-- Reports -->
+                    <a href="#" class="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
+                        <i class="fas fa-chart-bar w-5 h-5 mr-3 text-indigo-500"></i>
+                        Rapports
+                    </a>
+                </nav>
+
+                <!-- User Profile -->
+                <div class="flex-shrink-0 p-4 border-t border-gray-200">
+                    <div class="flex items-center space-x-3">
+                        <!-- Profile photo of a farm manager -->
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=150&h=150" alt="Photo de profil utilisateur" class="w-10 h-10 rounded-full object-cover">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-900" data-bind="user.name">Jean Dupont</p>
+                            <p class="text-xs text-gray-500" data-bind="user.role">Gestionnaire Ferme</p>
+                        </div>
+                        <button class="p-1.5 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-cog text-gray-400"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header -->
+            <!-- @COMPONENT: Header -->
+            <header class="bg-white border-b border-gray-200 shadow-sm">
+                <div class="flex items-center justify-between px-6 py-4">
+                    <!-- Mobile menu button -->
+                    <button class="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+
+                    <!-- Breadcrumbs -->
+                    <nav class="hidden lg:flex items-center space-x-2 text-sm">
+                        <span class="text-gray-500">Accueil</span>
+                        <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                        <span class="text-primary-600 font-medium">Tableau de Bord</span>
+                    </nav>
+
+                    <!-- Header Actions -->
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">3</span>
+                        </button>
+
+                        <!-- Weather Widget -->
+                        <div class="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-blue-50 rounded-lg">
+                            <i class="fas fa-sun text-yellow-500"></i>
+                            <span class="text-sm font-medium text-blue-900">22°C</span>
+                        </div>
+
+                        <!-- Dark Mode Toggle -->
+                        <button class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg">
+                            <i class="fas fa-moon text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: Header -->
+
+            <!-- Main Dashboard Content -->
+            <!-- @COMPONENT: DashboardContent -->
+            <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
+                <!-- Welcome Section -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Bienvenue, Jean !</h2>
+                    <p class="text-gray-600">Voici un aperçu de votre ferme cunicole aujourd'hui</p>
+                </div>
+
+                <!-- Key Metrics Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Total Rabbits -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Total Lapins</p>
+                                <p class="text-3xl font-bold text-gray-900" data-bind="metrics.totalRabbits">847</p>
+                                <p class="text-sm text-green-600 mt-1">
+                                    <i class="fas fa-arrow-up text-xs"></i> +12 cette semaine
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-rabbit text-primary-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Breeders -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Reproducteurs Actifs</p>
+                                <p class="text-3xl font-bold text-gray-900" data-bind="metrics.activeBreeders">127</p>
+                                <p class="text-sm text-blue-600 mt-1">
+                                    45 Femelles • 12 Mâles
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-heart text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expected Births -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Naissances Prévues</p>
+                                <p class="text-3xl font-bold text-gray-900" data-bind="metrics.expectedBirths">23</p>
+                                <p class="text-sm text-amber-600 mt-1">
+                                    <i class="fas fa-calendar text-xs"></i> 7 jours
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-baby text-amber-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ready to Sell -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Prêts à Vendre</p>
+                                <p class="text-3xl font-bold text-gray-900" data-bind="metrics.readyToSell">156</p>
+                                <p class="text-sm text-green-600 mt-1">
+                                    <i class="fas fa-coins text-xs"></i> ~4,680€
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shopping-cart text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Analytics Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Birth Rate Chart -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Évolution des Naissances</h3>
+                            <select class="text-sm border border-gray-300 rounded-lg px-3 py-1">
+                                <option>6 derniers mois</option>
+                                <option>Année courante</option>
+                            </select>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="birthChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Weight Progress Chart -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Progression Pondérale</h3>
+                            <span class="text-sm text-gray-500">Moyenne par lot</span>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="weightChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Items and Alerts -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Urgent Tasks -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Tâches Urgentes</h3>
+                            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-1 rounded-full">5</span>
+                        </div>
+                        <div class="space-y-3">
+                            <!-- @MAP: urgentTasks.map(task => ( -->
+                            <div class="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-red-900">Vaccination Rappel</p>
+                                    <p class="text-xs text-red-700">12 lapins - Enclos A3, A7</p>
+                                    <p class="text-xs text-red-600 mt-1">Échéance: Aujourd'hui</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                                <i class="fas fa-weight text-amber-500 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-amber-900">Contrôle Poids</p>
+                                    <p class="text-xs text-amber-700">Lot L2024-03 (45 lapins)</p>
+                                    <p class="text-xs text-amber-600 mt-1">Poids cible atteint</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                <i class="fas fa-calendar-check text-blue-500 mt-0.5"></i>
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-blue-900">Mise Bas Prévue</p>
+                                    <p class="text-xs text-blue-700">Femelle F2024-089</p>
+                                    <p class="text-xs text-blue-600 mt-1">Demain, 15h-18h</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                        <button class="w-full mt-4 text-sm text-primary-600 hover:text-primary-700 font-medium">
+                            Voir toutes les tâches <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Activité Récente</h3>
+                        <div class="space-y-4">
+                            <!-- @MAP: recentActivity.map(activity => ( -->
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-plus text-green-600 text-xs"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900">Nouvelle portée enregistrée</p>
+                                    <p class="text-xs text-gray-500">Femelle F2024-067 • 8 lapereaux</p>
+                                    <p class="text-xs text-gray-400 mt-1">Il y a 2 heures</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-shopping-cart text-blue-600 text-xs"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900">Vente effectuée</p>
+                                    <p class="text-xs text-gray-500">23 lapins de chair • 420€</p>
+                                    <p class="text-xs text-gray-400 mt-1">Hier, 14:30</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start space-x-3">
+                                <div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-stethoscope text-red-600 text-xs"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm text-gray-900">Traitement administré</p>
+                                    <p class="text-xs text-gray-500">Mâle M2024-023 • Antibiotique</p>
+                                    <p class="text-xs text-gray-400 mt-1">Hier, 09:15</p>
+                                </div>
+                            </div>
+                            <!-- @END_MAP )) -->
+                        </div>
+                    </div>
+
+                    <!-- Financial Summary -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Résumé Financier</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-arrow-up text-green-600"></i>
+                                    <span class="text-sm font-medium text-green-900">Revenus du mois</span>
+                                </div>
+                                <span class="text-lg font-bold text-green-900" data-bind="financial.monthlyRevenue">12,450€</span>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-arrow-down text-red-600"></i>
+                                    <span class="text-sm font-medium text-red-900">Dépenses du mois</span>
+                                </div>
+                                <span class="text-lg font-bold text-red-900" data-bind="financial.monthlyExpenses">8,230€</span>
+                            </div>
+
+                            <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                                <div class="flex items-center space-x-3">
+                                    <i class="fas fa-chart-line text-blue-600"></i>
+                                    <span class="text-sm font-bold text-blue-900">Bénéfice net</span>
+                                </div>
+                                <span class="text-xl font-bold text-blue-900" data-bind="financial.netProfit">4,220€</span>
+                            </div>
+
+                            <div class="pt-2 border-t border-gray-200">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-600">Trésorerie disponible</span>
+                                    <span class="font-semibold text-gray-900" data-bind="financial.availableCash">28,945€</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions Rapides</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <button class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-primary-50 hover:border-primary-300 transition-colors group">
+                            <i class="fas fa-plus-circle text-2xl text-primary-600 group-hover:text-primary-700 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-primary-700">Nouveau Lapin</span>
+                        </button>
+
+                        <button class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors group">
+                            <i class="fas fa-heart text-2xl text-blue-600 group-hover:text-blue-700 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-blue-700">Accouplement</span>
+                        </button>
+
+                        <button class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-300 transition-colors group">
+                            <i class="fas fa-stethoscope text-2xl text-red-600 group-hover:text-red-700 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-red-700">Soins</span>
+                        </button>
+
+                        <button class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors group">
+                            <i class="fas fa-shopping-cart text-2xl text-green-600 group-hover:text-green-700 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-green-700">Vente</span>
+                        </button>
+
+                        <button class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-amber-50 hover:border-amber-300 transition-colors group">
+                            <i class="fas fa-weight text-2xl text-amber-600 group-hover:text-amber-700 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-amber-700">Pesée</span>
+                        </button>
+
+                        <button class="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors group">
+                            <i class="fas fa-file-alt text-2xl text-purple-600 group-hover:text-purple-700 mb-2"></i>
+                            <span class="text-sm font-medium text-gray-700 group-hover:text-purple-700">Rapport</span>
+                        </button>
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: DashboardContent -->
+        </div>
+    </div>
+    <!-- @END_COMPONENT: AppLayout -->
+
+    <!-- Chart Initialization Script -->
+    <script>
+        (function() {
+            // Birth Rate Chart
+            const birthCtx = document.getElementById('birthChart').getContext('2d');
+            new Chart(birthCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Lapereaux nés',
+                        data: [120, 145, 132, 167, 189, 156],
+                        borderColor: '#22c55e',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Weight Progress Chart
+            const weightCtx = document.getElementById('weightChart').getContext('2d');
+            new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Semaine 1', 'Semaine 2', 'Semaine 3', 'Semaine 4', 'Semaine 5', 'Semaine 6'],
+                    datasets: [
+                        {
+                            label: 'Lot A (45 lapins)',
+                            data: [0.15, 0.28, 0.45, 0.68, 0.95, 1.2],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Lot B (38 lapins)',
+                            data: [0.12, 0.25, 0.42, 0.65, 0.89, 1.15],
+                            borderColor: '#a3703b',
+                            backgroundColor: 'rgba(163, 112, 59, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Poids (kg)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Add some interactive behaviors
+            // TODO: Implement real-time data updates and user interactions
+            // TODO: Add form validation and submission handling
+            // TODO: Implement navigation between modules
+            // TODO: Add mobile menu toggle functionality
+            
+            // Mobile menu toggle placeholder
+            const mobileMenuBtn = document.querySelector('.lg\\:hidden button');
+            if (mobileMenuBtn) {
+                mobileMenuBtn.addEventListener('click', function() {
+                    // TODO: Implement mobile sidebar toggle
+                    console.log('Mobile menu toggle clicked');
+                });
+            }
+
+            // Dark mode toggle placeholder
+            const darkModeBtn = document.querySelector('.fa-moon').parentElement;
+            if (darkModeBtn) {
+                darkModeBtn.addEventListener('click', function() {
+                    // TODO: Implement dark mode functionality
+                    console.log('Dark mode toggle clicked');
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
