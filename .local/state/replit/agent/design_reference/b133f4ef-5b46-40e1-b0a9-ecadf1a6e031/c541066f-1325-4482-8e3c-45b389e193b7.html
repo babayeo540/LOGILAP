@@ -1,0 +1,621 @@
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPGEST-PRO 2.0 - Gestion de Ferme Cunicole</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2E7D32',
+                        secondary: '#558B2F',
+                        accent: '#FF8F00',
+                        success: '#4CAF50',
+                        warning: '#FF9800',
+                        error: '#F44336',
+                        neutral: '#424242',
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="font-inter bg-gray-50 text-neutral">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="min-h-screen flex">
+        <!-- @COMPONENT: Sidebar -->
+        <div class="w-72 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+            <!-- Header -->
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-rabbit text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-primary">LAPGEST-PRO</h1>
+                        <p class="text-sm text-gray-500">v2.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="flex-1 py-6">
+                <div class="px-4 space-y-2">
+                    <!-- @COMPONENT: NavItem [active] -->
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium bg-primary text-white rounded-lg">
+                        <i class="fas fa-chart-pie w-5 h-5 mr-3"></i>
+                        Tableau de Bord
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-rabbit w-5 h-5 mr-3"></i>
+                        Gestion des Lapins
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-heart w-5 h-5 mr-3"></i>
+                        Reproduction
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-user-md w-5 h-5 mr-3"></i>
+                        Santé & Soins
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-warehouse w-5 h-5 mr-3"></i>
+                        Stocks & Aliments
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-shopping-cart w-5 h-5 mr-3"></i>
+                        Ventes & Achats
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-users w-5 h-5 mr-3"></i>
+                        Personnel
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-calculator w-5 h-5 mr-3"></i>
+                        Dépenses
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-university w-5 h-5 mr-3"></i>
+                        Trésorerie
+                    </a>
+                    
+                    <a href="#" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg">
+                        <i class="fas fa-chart-bar w-5 h-5 mr-3"></i>
+                        Rapports
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User Info -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-600"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900" data-bind="user.name">Jean Dupont</p>
+                        <p class="text-xs text-gray-500">Gestionnaire</p>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- @END_COMPONENT: Sidebar -->
+
+        <!-- @COMPONENT: MainContent -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- @COMPONENT: TopBar -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Tableau de Bord</h2>
+                        <p class="text-sm text-gray-500">Vue d'ensemble de votre ferme cunicole</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <!-- Notifications -->
+                        <button class="relative p-2 text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-bell text-xl"></i>
+                            <span class="absolute -top-1 -right-1 w-5 h-5 bg-error text-white rounded-full text-xs flex items-center justify-center">3</span>
+                        </button>
+                        
+                        <!-- Date -->
+                        <div class="text-sm text-gray-500">
+                            <span data-bind="currentDate">15 janvier 2024</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- @END_COMPONENT: TopBar -->
+
+            <!-- @COMPONENT: DashboardContent -->
+            <main class="flex-1 overflow-y-auto p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- @COMPONENT: StatCard -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-rabbit text-primary text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Total Lapins</p>
+                                <p class="text-2xl font-bold text-gray-900" data-bind="stats.totalRabbits">247</p>
+                                <p class="text-xs text-success">+12 ce mois</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-heart text-secondary text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Reproducteurs</p>
+                                <p class="text-2xl font-bold text-gray-900" data-bind="stats.breeders">34</p>
+                                <p class="text-xs text-gray-500">18♀ / 16♂</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shopping-cart text-accent text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">Stock à Vendre</p>
+                                <p class="text-2xl font-bold text-gray-900" data-bind="stats.forSale">89</p>
+                                <p class="text-xs text-warning">Poids moyen: 2.1kg</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-euro-sign text-success text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm font-medium text-gray-600">CA du Mois</p>
+                                <p class="text-2xl font-bold text-gray-900" data-bind="stats.revenue">4,830€</p>
+                                <p class="text-xs text-success">+15% vs mois dernier</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- @END_COMPONENT: StatCard -->
+                </div>
+
+                <!-- Main Dashboard Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Left Column -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- @COMPONENT: RecentActivity -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Activité Récente</h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-4">
+                                    <!-- @MAP: recentActivities.map(activity => ( -->
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-baby text-primary text-sm"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Nouvelle portée enregistrée</p>
+                                            <p class="text-sm text-gray-500">Mère: LAP-F-024 • 7 lapereaux nés • Enclos M-3</p>
+                                            <p class="text-xs text-gray-400">Il y a 2 heures</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-8 h-8 bg-success/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-shopping-cart text-success text-sm"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Vente effectuée</p>
+                                            <p class="text-sm text-gray-500">Client: Boucherie Martin • 12 lapins • 420€</p>
+                                            <p class="text-xs text-gray-400">Il y a 4 heures</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-8 h-8 bg-warning/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-exclamation-triangle text-warning text-sm"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Alerte stock aliment</p>
+                                            <p class="text-sm text-gray-500">Granulés croissance • Stock: 45kg • Seuil: 50kg</p>
+                                            <p class="text-xs text-gray-400">Il y a 6 heures</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-8 h-8 bg-secondary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-user-md text-secondary text-sm"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-gray-900">Traitement administré</p>
+                                            <p class="text-sm text-gray-500">LAP-M-018 • Antibiotique • Dr. Roussel</p>
+                                            <p class="text-xs text-gray-400">Hier à 14:30</p>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: RecentActivity -->
+
+                        <!-- @COMPONENT: ProductionChart -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Production Mensuelle</h3>
+                            </div>
+                            <div class="p-6">
+                                <!-- Chart placeholder with fake data visualization -->
+                                <div class="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
+                                    <div class="text-center">
+                                        <i class="fas fa-chart-line text-4xl text-gray-300 mb-4"></i>
+                                        <p class="text-gray-500">Graphique de production</p>
+                                        <p class="text-sm text-gray-400">Intégration Chart.js</p>
+                                    </div>
+                                </div>
+                                <!-- @FUNCTIONALITY: Implement production chart using Chart.js showing births, sales, and weight gains over time -->
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: ProductionChart -->
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                        <!-- @COMPONENT: UpcomingTasks -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Tâches à Venir</h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-3">
+                                    <!-- @MAP: upcomingTasks.map(task => ( -->
+                                    <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                        <i class="fas fa-calendar-check text-error"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Mise bas prévue</p>
+                                            <p class="text-xs text-gray-500">LAP-F-029 • Demain</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                        <i class="fas fa-syringe text-warning"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Vaccination</p>
+                                            <p class="text-xs text-gray-500">Lot E-12 • Dans 3 jours</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <i class="fas fa-cut text-blue-600"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Sevrage</p>
+                                            <p class="text-xs text-gray-500">Portée P-089 • Dans 5 jours</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                                        <i class="fas fa-weight text-success"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Pesée groupe</p>
+                                            <p class="text-xs text-gray-500">Enclos E-7 • Vendredi</p>
+                                        </div>
+                                    </div>
+                                    <!-- @END_MAP )) -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: UpcomingTasks -->
+
+                        <!-- @COMPONENT: HealthAlert -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Alertes Santé</h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-3">
+                                    <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                        <i class="fas fa-exclamation-circle text-error"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Fin de retrait</p>
+                                            <p class="text-xs text-gray-500">LAP-M-034 • Antibio terminé</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center space-x-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                                        <i class="fas fa-thermometer text-warning"></i>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-900">Surveillance</p>
+                                            <p class="text-xs text-gray-500">LAP-F-019 • Comportement</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: HealthAlert -->
+
+                        <!-- @COMPONENT: StockAlert -->
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                            <div class="px-6 py-4 border-b border-gray-200">
+                                <h3 class="text-lg font-semibold text-gray-900">Alertes Stock</h3>
+                            </div>
+                            <div class="p-6">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-warehouse text-accent"></i>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Granulés adultes</p>
+                                                <p class="text-xs text-gray-500">Stock bas: 25kg</p>
+                                            </div>
+                                        </div>
+                                        <button class="text-xs bg-accent text-white px-2 py-1 rounded">Commander</button>
+                                    </div>
+
+                                    <div class="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-pills text-accent"></i>
+                                            <div>
+                                                <p class="text-sm font-medium text-gray-900">Vitamines</p>
+                                                <p class="text-xs text-gray-500">Expire dans 15j</p>
+                                            </div>
+                                        </div>
+                                        <button class="text-xs bg-accent text-white px-2 py-1 rounded">Vérifier</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_COMPONENT: StockAlert -->
+                    </div>
+                </div>
+
+                <!-- Quick Actions Section -->
+                <div class="mt-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions Rapides</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <!-- @COMPONENT: QuickActionButton -->
+                        <button class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-center">
+                            <i class="fas fa-plus-circle text-primary text-2xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-900">Nouveau Lapin</p>
+                        </button>
+
+                        <button class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-center">
+                            <i class="fas fa-heart text-secondary text-2xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-900">Accouplement</p>
+                        </button>
+
+                        <button class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-center">
+                            <i class="fas fa-baby text-primary text-2xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-900">Mise Bas</p>
+                        </button>
+
+                        <button class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-center">
+                            <i class="fas fa-weight text-accent text-2xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-900">Pesée</p>
+                        </button>
+
+                        <button class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-center">
+                            <i class="fas fa-shopping-cart text-success text-2xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-900">Vente</p>
+                        </button>
+
+                        <button class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow text-center">
+                            <i class="fas fa-user-md text-secondary text-2xl mb-2"></i>
+                            <p class="text-sm font-medium text-gray-900">Traitement</p>
+                        </button>
+                        <!-- @END_COMPONENT: QuickActionButton -->
+                    </div>
+                </div>
+            </main>
+            <!-- @END_COMPONENT: DashboardContent -->
+        </div>
+        <!-- @END_COMPONENT: MainContent -->
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+
+    <!-- @COMPONENT: Modal [Rabbit Details Modal] -->
+    <div id="rabbitModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+        <div class="flex items-center justify-center p-4 min-h-screen">
+            <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                    <h3 class="text-xl font-semibold text-gray-900">Fiche Lapin - LAP-F-024</h3>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Left Column - Basic Info -->
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-3">Informations Générales</h4>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">ID:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.id">LAP-F-024</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Race:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.breed">Néo-Zélandais</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Sexe:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.sex">Femelle</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Couleur:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.color">Blanc</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Naissance:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.birthDate">15/03/2023</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Statut:</span>
+                                        <span class="inline-flex px-2 py-1 bg-primary text-white text-xs rounded-full ml-2">Reproductrice</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-3">Localisation</h4>
+                                <div class="text-sm">
+                                    <span class="text-gray-500">Enclos actuel:</span>
+                                    <span class="font-medium ml-2" data-bind="rabbit.cage">R-F-3 (Reproductrice)</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-3">Généalogie</h4>
+                                <div class="space-y-2 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">Père:</span>
+                                        <span class="font-medium ml-2 text-blue-600 cursor-pointer" data-bind="rabbit.father">LAP-M-015</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Mère:</span>
+                                        <span class="font-medium ml-2 text-blue-600 cursor-pointer" data-bind="rabbit.mother">LAP-F-008</span>
+                                    </div>
+                                    <button class="text-primary hover:text-primary/80 text-sm font-medium">
+                                        <i class="fas fa-sitemap mr-1"></i>
+                                        Voir arbre généalogique complet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Performance & Health -->
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-3">Performance Reproduction</h4>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">Portées totales:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.totalLitters">7</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Lapereaux nés:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.totalBorn">49</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Taux survie:</span>
+                                        <span class="font-medium ml-2 text-success" data-bind="rabbit.survivalRate">92%</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Dernière portée:</span>
+                                        <span class="font-medium ml-2" data-bind="rabbit.lastLitter">12/12/2023</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-3">Statut Sanitaire</h4>
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <span class="inline-flex px-2 py-1 bg-success text-white text-xs rounded-full">Sain</span>
+                                    <span class="text-sm text-gray-500">Dernière visite: 10/01/2024</span>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-600">Prochain vaccin: Myxomatose (25/01/2024)</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-gray-900 mb-3">Évolution Poids</h4>
+                                <div class="h-32 bg-white rounded border flex items-center justify-center">
+                                    <div class="text-center text-gray-500">
+                                        <i class="fas fa-chart-line text-2xl mb-2"></i>
+                                        <p class="text-sm">Graphique de poids</p>
+                                    </div>
+                                </div>
+                                <!-- @FUNCTIONALITY: Weight tracking chart showing growth curve -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="mt-8 flex space-x-4">
+                        <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+                            <i class="fas fa-edit mr-2"></i>
+                            Modifier
+                        </button>
+                        <button class="bg-secondary text-white px-4 py-2 rounded-lg hover:bg-secondary/90 transition-colors">
+                            <i class="fas fa-heart mr-2"></i>
+                            Programmer Accouplement
+                        </button>
+                        <button class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent/90 transition-colors">
+                            <i class="fas fa-weight mr-2"></i>
+                            Peser
+                        </button>
+                        <button class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            <i class="fas fa-print mr-2"></i>
+                            Imprimer Fiche
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Modal -->
+
+    <script>
+        // TODO: Implement business logic, API calls, and state management
+        (function() {
+            // Simple modal toggle functionality for demonstration
+            document.addEventListener('DOMContentLoaded', function() {
+                const modal = document.getElementById('rabbitModal');
+                
+                // Show modal when clicking on rabbit-related elements
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('[data-rabbit-id]')) {
+                        modal.classList.remove('hidden');
+                    }
+                });
+                
+                // Hide modal when clicking close or outside
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal || e.target.closest('.fa-times')) {
+                        modal.classList.add('hidden');
+                    }
+                });
+                
+                // Update current date
+                const dateElement = document.querySelector('[data-bind="currentDate"]');
+                if (dateElement) {
+                    const now = new Date();
+                    const options = { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    };
+                    dateElement.textContent = now.toLocaleDateString('fr-FR', options);
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
