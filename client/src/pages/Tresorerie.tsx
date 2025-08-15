@@ -99,7 +99,7 @@ export default function Tresorerie() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
-    },
+    
     {
       id: "3",
       nom: "Orange Money",
