@@ -100,36 +100,9 @@ export default function Tresorerie() {
     return new Date(dateString).toLocaleDateString('fr-FR');
   };
     
-    {
-      id: "3",
-      nom: "Orange Money",
-      type: "mobile_money",
-      operateur: "Orange",
-      numero: "+33612345678",
-      solde: 450.25,
-      dateOuverture: "2023-06-10",
-      statut: "actif"
-    },
-    {
-      id: "4",
-      nom: "Wave",
-      type: "mobile_money", 
-      operateur: "Wave",
-      numero: "+33687654321",
-      solde: 150.00,
-      dateOuverture: "2024-01-05",
-      statut: "actif"
-    },
-    {
-      id: "5",
-      nom: "Caisse Espèces",
-      type: "especes",
-      solde: 850.50,
-      dateOuverture: "2023-01-01",
-      statut: "actif"
-    }
-  ];
-
-  // Mock data pour les transactions
-
+  // Le code qui suit est incomplet, le reste de votre logique doit être ajouté ici
+  // Par exemple, les autres fonctions ou le rendu du composant
   const getCompteById = (id: string) => {
+    //
+  };
+}
