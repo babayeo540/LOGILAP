@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 const migrateDb = async () => {
   try {
     log("Starting database migrations...", "DB");
-    await migrate(db, { migrationsFolder: "./drizzle" });
+    await migrate(db, { migrationsFolder: "./migrations" });
     log("Database migrations complete.", "DB");
   } catch (err) {
     log(`Database migration failed: ${err}`, "DB");
