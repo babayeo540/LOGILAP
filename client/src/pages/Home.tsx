@@ -82,6 +82,7 @@ function HomeContent() {
     );
   }
 
+  // Si la requête a échoué ou si les données ne sont pas présentes
   if (isErrorStats || !stats) {
     return (
       <div className="flex-1 flex items-center justify-center p-8 text-red-600">
