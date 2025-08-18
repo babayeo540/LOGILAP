@@ -1,19 +1,24 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "wouter";
-import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarFooter,
+} from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Dashboard from "@/components/Dashboard";
-import { 
-  Rabbit, 
-  Heart, 
-  Stethoscope, 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  Receipt, 
-  Banknote, 
+import {
+  Rabbit,
+  Heart,
+  Stethoscope,
+  Package,
+  ShoppingCart,
+  Users,
+  Receipt,
+  Banknote,
   BarChart3,
   Bell,
   Sun,
@@ -21,10 +26,28 @@ import {
   Menu,
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Euro,
+  Scale,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
+import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-export default function Home() {
+// Définition de types pour une meilleure sécurité
+interface DashboardStats {
+  totalLapins: number;
+  totalVentes: number;
+  totalDepenses: number;
+  tauxMortalite: number;
+  nombreNotifications: number;
+}
+
+// Initialisation de React Query Client
+const queryClient = new QueryClient();
+
+// Composant principal pour le tableau de bord
+function HomeContent() {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rabbitMenuOpen, setRabbitMenuOpen] = useState(false);
@@ -32,180 +55,178 @@ export default function Home() {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle("dark");
   };
 
+  // Récupération des statistiques du tableau de bord
+  const {
+    data: stats,
+    isLoading: isLoadingStats,
+    isError: isErrorStats,
+  } = useQuery<DashboardStats>({
+    queryKey: ["/api/dashboard/stats"],
+    queryFn: async () => {
+      const response = await fetch("/api/dashboard/stats");
+      if (!response.ok) {
+        throw new Error("Échec de la récupération des statistiques");
+      }
+      return response.json();
+    },
+  });
+
+  if (isLoadingStats) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8">
+        <p>Chargement du tableau de bord...</p>
+      </div>
+    );
+  }
+
+  if (isErrorStats || !stats) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8 text-red-600">
+        <p>
+          Erreur lors du chargement des données. Veuillez réessayer plus tard.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Sidebar for Desktop */}
       <aside className="hidden lg:flex lg:flex-shrink-0">
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                <Rabbit className="text-primary-600 w-5 h-5" />
+              <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center shadow-md">
+                <Rabbit className="text-primary-600 w-6 h-6" />
               </div>
-              <div className="text-white">
-                <h1 className="text-lg font-bold">LAPGEST-PRO</h1>
-                <p className="text-xs opacity-90">v2.0 - Gestion Cunicole</p>
+              <div className="text-left">
+                <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  LAPGEST-PRO
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  v2.0
+                </p>
               </div>
             </div>
           </SidebarHeader>
 
           <SidebarContent>
-            {/* Dashboard */}
-            <a href="#" className="flex items-center px-3 py-2.5 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg">
-              <BarChart3 className="w-5 h-5 mr-3" />
-              Tableau de Bord
-            </a>
-            
-            {/* Rabbit Management */}
-            <div className="space-y-1">
-              <div 
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer"
-                onClick={() => setRabbitMenuOpen(!rabbitMenuOpen)}
-              >
-                <Rabbit className="w-5 h-5 mr-3 text-earth-500" />
-                Gestion des Lapins
-                {rabbitMenuOpen ? (
-                  <ChevronDown className="ml-auto w-4 h-4" />
-                ) : (
-                  <ChevronRight className="ml-auto w-4 h-4" />
-                )}
+            {/* User Profile */}
+            <div className="flex items-center space-x-3 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.username}`} />
+                <AvatarFallback>{user?.username.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {user?.username}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {user?.role}
+                </p>
               </div>
-              {rabbitMenuOpen && (
-                <div className="ml-8 space-y-1">
-                  <a href="#" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Fiches Individuelles</a>
-                  <Link href="/enclos" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Enclos & Cages</Link>
-                  <Link href="/reproduction" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Reproduction</Link>
-                  <a href="#" className="block px-3 py-1.5 text-sm text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded">Sevrage</a>
-                </div>
-              )}
             </div>
 
-            {/* Health Management */}
-            <Link href="/sante" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <Stethoscope className="w-5 h-5 mr-3 text-red-500" />
-              Santé & Soins
-            </Link>
-
-            {/* Stock Management */}
-            <Link href="/stocks" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <Package className="w-5 h-5 mr-3 text-amber-500" />
-              Gestion des Stocks
-            </Link>
-
-            {/* Sales & Purchases */}
-            <Link href="/finances" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <ShoppingCart className="w-5 h-5 mr-3 text-blue-500" />
-              Ventes & Achats
-            </Link>
-
-            {/* Personnel */}
-            <Link href="/personnel" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <Users className="w-5 h-5 mr-3 text-purple-500" />
-              Personnel
-            </Link>
-
-            {/* Expenses */}
-            <Link href="/depenses" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <Receipt className="w-5 h-5 mr-3 text-orange-500" />
-              Dépenses
-            </Link>
-
-            {/* Banking */}
-            <Link href="/tresorerie" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <Banknote className="w-5 h-5 mr-3 text-green-500" />
-              Trésorerie
-            </Link>
-
-            {/* Reports */}
-            <Link href="/rapports" className="flex items-center px-3 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg">
-              <BarChart3 className="w-5 h-5 mr-3 text-indigo-500" />
-              Rapports
-            </Link>
+            {/* Navigation Menus */}
+            <nav className="mt-6 space-y-1">
+              {/* Main menu */}
+              <Link href="/">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-primary-600 bg-primary-50 dark:bg-primary-900 transition-colors">
+                  <BarChart3 className="w-5 h-5" />
+                  <span>Tableau de bord</span>
+                </a>
+              </Link>
+              <Link href="/lapins">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+                  <Rabbit className="w-5 h-5" />
+                  <span>Cheptel de lapins</span>
+                </a>
+              </Link>
+              <Link href="/enclos">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+                  <Package className="w-5 h-5" />
+                  <span>Enclos & Logements</span>
+                </a>
+              </Link>
+              <Link href="/sante">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+                  <Stethoscope className="w-5 h-5" />
+                  <span>Santé & Reproduction</span>
+                </a>
+              </Link>
+              <Link href="/finances">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+                  <Banknote className="w-5 h-5" />
+                  <span>Finances</span>
+                </a>
+              </Link>
+              <Link href="/personnel">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+                  <Users className="w-5 h-5" />
+                  <span>Personnel</span>
+                </a>
+              </Link>
+              <Link href="/parametres">
+                <a className="flex items-center space-x-3 px-4 py-2 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100 transition-colors">
+                  <Settings className="w-5 h-5" />
+                  <span>Paramètres</span>
+                </a>
+              </Link>
+            </nav>
           </SidebarContent>
 
           <SidebarFooter>
-            <div className="flex items-center space-x-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={(user as any)?.profileImageUrl || ""} alt="Profile" />
-                <AvatarFallback className="bg-primary-100 text-primary-700">
-                  {(user as any)?.firstName?.[0]}{(user as any)?.lastName?.[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">
-                  {(user as any)?.firstName} {(user as any)?.lastName}
-                </p>
-                <p className="text-xs text-gray-500">Gestionnaire Ferme</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-1.5"
-                onClick={() => window.location.href = '/api/logout'}
-              >
-                <Settings className="w-4 h-4 text-gray-400" />
-              </Button>
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+              <Link href="/parametres">
+                <a className="flex items-center justify-between text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Settings className="w-4 h-4" />
+                    <span>Paramètres</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4" />
+                </a>
+              </Link>
             </div>
           </SidebarFooter>
         </Sidebar>
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black opacity-50" onClick={() => setSidebarOpen(false)} />
-          <div className="fixed left-0 top-0 h-full w-72 bg-white shadow-xl">
-            <Sidebar>
-              <SidebarHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                      <Rabbit className="text-primary-600 w-5 h-5" />
-                    </div>
-                    <div className="text-white">
-                      <h1 className="text-lg font-bold">LAPGEST-PRO</h1>
-                      <p className="text-xs opacity-90">v2.0</p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSidebarOpen(false)}
-                    className="text-white"
-                  >
-                    ×
-                  </Button>
-                </div>
-              </SidebarHeader>
-              {/* Same content as desktop sidebar */}
-            </Sidebar>
-          </div>
-        </div>
-      )}
-
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="flex items-center justify-between px-6 py-4">
-            {/* Mobile menu button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden"
-            >
-              <Menu className="w-5 h-5" />
-            </Button>
+      <div className="flex-1 flex flex-col overflow-y-auto">
+        {/* Mobile Header */}
+        <header className="lg:hidden p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)}>
+            <Menu className="w-6 h-6" />
+          </Button>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              LAPGEST-PRO
+            </h1>
+            <Rabbit className="w-6 h-6 text-primary-600" />
+          </div>
+          <Button variant="ghost" size="icon">
+            <Bell className="w-6 h-6" />
+            {stats.nombreNotifications > 0 && (
+              <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                {stats.nombreNotifications}
+              </span>
+            )}
+          </Button>
+        </header>
 
+        {/* Desktop Header */}
+        <header className="hidden lg:block p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between">
             {/* Breadcrumbs */}
             <nav className="hidden lg:flex items-center space-x-2 text-sm">
-              <span className="text-gray-500">Accueil</span>
-              <span className="text-gray-300">/</span>
-              <span className="text-primary-600 font-medium">Tableau de Bord</span>
+              <span className="text-gray-500 dark:text-gray-400">Accueil</span>
+              <span className="text-gray-300 dark:text-gray-600">/</span>
+              <span className="text-primary-600 font-medium">
+                Tableau de Bord
+              </span>
             </nav>
 
             {/* Header Actions */}
@@ -213,23 +234,14 @@ export default function Home() {
               {/* Notifications */}
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="w-5 h-5" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  3
-                </span>
+                {stats.nombreNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                    {stats.nombreNotifications}
+                  </span>
+                )}
               </Button>
-
-              {/* Weather Widget */}
-              <div className="hidden md:flex items-center space-x-2 px-3 py-1.5 bg-blue-50 rounded-lg">
-                <Sun className="text-yellow-500 w-4 h-4" />
-                <span className="text-sm font-medium text-blue-900">22°C</span>
-              </div>
-
               {/* Dark Mode Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleDarkMode}
-              >
+              <Button variant="ghost" size="sm" onClick={toggleDarkMode}>
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </Button>
             </div>
@@ -237,8 +249,74 @@ export default function Home() {
         </header>
 
         {/* Dashboard Content */}
-        <Dashboard />
+        <main className="flex-1 p-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Nombre de lapins
+                </CardTitle>
+                <Rabbit className="h-4 w-4 text-gray-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.totalLapins}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Ventes
+                </CardTitle>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.totalVentes.toFixed(2)} XOF
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Dépenses
+                </CardTitle>
+                <TrendingDown className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.totalDepenses.toFixed(2)} XOF
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Taux de Mortalité
+                </CardTitle>
+                <Heart className="h-4 w-4 text-red-500" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.tauxMortalite.toFixed(2)}%
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* Main Dashboard Content - Remplacer avec un composant Dashboard réel */}
+          <Dashboard />
+        </main>
       </div>
     </div>
+  );
+}
+
+// Wrapper pour inclure le QueryClientProvider
+export default function Home() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <HomeContent />
+    </QueryClientProvider>
   );
 }

@@ -2,18 +2,40 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { insertEnclosSchema } from "@shared/schema";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
 
-type EnclosFormData = z.infer<typeof insertEnclosSchema>;
+const enclosSchema = z.object({
+  id: z.string().optional(),
+  nom: z.string().min(1, "Nom requis"),
+  type: z.enum(["engraissement", "reproduction", "quarantaine"]),
+  capaciteMax: z.number().int().min(1, "Capacité doit être au moins de 1"),
+  status: z.enum(["vide", "occupe", "a_nettoyer", "en_maintenance"]),
+  notes: z.string().optional(),
+});
+
+type EnclosFormData = z.infer<typeof enclosSchema>;
 
 interface EnclosFormProps {
-  enclos?: any;
+  enclos?: EnclosFormData | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -23,8 +45,9 @@ export default function EnclosForm({ enclos, onSuccess, onCancel }: EnclosFormPr
   const { toast } = useToast();
 
   const form = useForm<EnclosFormData>({
-    resolver: zodResolver(insertEnclosSchema),
+    resolver: zodResolver(enclosSchema),
     defaultValues: {
+      id: enclos?.id || undefined,
       nom: enclos?.nom || "",
       type: enclos?.type || "engraissement",
       capaciteMax: enclos?.capaciteMax || 1,
@@ -33,175 +56,137 @@ export default function EnclosForm({ enclos, onSuccess, onCancel }: EnclosFormPr
     },
   });
 
-  const createMutation = useMutation({
-    mutationFn: async (data: EnclosFormData) => {
-      const response = await fetch("/api/enclos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+  const enclosMutation = useMutation({
+    mutationFn: (data: EnclosFormData) => {
+      const isEditing = !!data.id;
+      const url = isEditing ? `/api/enclos/${data.id}` : "/api/enclos";
+      const method = isEditing ? "PUT" : "POST";
+      return apiRequest(url, {
+        method,
         body: JSON.stringify(data),
-        credentials: "include",
       });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la création");
-      }
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/enclos"] });
+      onSuccess();
       toast({
         title: "Succès",
-        description: "Enclos créé avec succès",
+        description: `Enclos ${enclos ? "modifié" : "ajouté"} avec succès.`,
       });
-      onSuccess();
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
         title: "Erreur",
-        description: error.message || "Erreur lors de la création",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: EnclosFormData) => {
-      const response = await fetch(`/api/enclos/${enclos.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la modification");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/enclos"] });
-      toast({
-        title: "Succès",
-        description: "Enclos modifié avec succès",
-      });
-      onSuccess();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors de la modification",
+        description: `Erreur lors de l'enregistrement de l'enclos: ${
+          error.message || "Une erreur inconnue est survenue."
+        }`,
         variant: "destructive",
       });
     },
   });
 
   const onSubmit = (data: EnclosFormData) => {
-    if (enclos) {
-      updateMutation.mutate(data);
-    } else {
-      createMutation.mutate(data);
-    }
+    enclosMutation.mutate(data);
   };
 
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const isPending = enclosMutation.isPending;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Informations de base */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Informations de base</h3>
-            
-            <FormField
-              control={form.control}
-              name="nom"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom de l'enclos *</FormLabel>
+        {/* Nom & Capacité */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="nom"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom de l'enclos</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ex: Enclos A1" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="capaciteMax"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Capacité maximale</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    min={1}
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Type & Statut */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Type d'enclos</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isPending}
+                >
                   <FormControl>
-                    <Input {...field} placeholder="Ex: Enclos A1" disabled={isPending} />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez le type" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  <SelectContent>
+                    <SelectItem value="engraissement">Engraissement</SelectItem>
+                    <SelectItem value="reproduction">Reproduction</SelectItem>
+                    <SelectItem value="quarantaine">Quarantaine</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type d'enclos *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="maternite">Maternité</SelectItem>
-                      <SelectItem value="engraissement">Engraissement</SelectItem>
-                      <SelectItem value="quarantaine">Quarantaine</SelectItem>
-                      <SelectItem value="reproducteur_male">Reproducteur mâle</SelectItem>
-                      <SelectItem value="reproducteur_femelle">Reproducteur femelle</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="capaciteMax"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Capacité maximale *</FormLabel>
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isPending}
+                >
                   <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="1"
-                      placeholder="Nombre de lapins"
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                      disabled={isPending}
-                    />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez un statut" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* État et statut */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">État et statut</h3>
-            
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Statut *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le statut" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="vide">Vide</SelectItem>
-                      <SelectItem value="occupe">Occupé</SelectItem>
-                      <SelectItem value="a_nettoyer">À nettoyer</SelectItem>
-                      <SelectItem value="en_maintenance">En maintenance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  <SelectContent>
+                    <SelectItem value="vide">Vide</SelectItem>
+                    <SelectItem value="occupe">Occupé</SelectItem>
+                    <SelectItem value="a_nettoyer">À nettoyer</SelectItem>
+                    <SelectItem value="en_maintenance">En maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Notes */}
@@ -212,8 +197,8 @@ export default function EnclosForm({ enclos, onSuccess, onCancel }: EnclosFormPr
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field} 
+                <Textarea
+                  {...field}
                   placeholder="Observations, équipements spéciaux..."
                   rows={3}
                   disabled={isPending}
@@ -227,9 +212,18 @@ export default function EnclosForm({ enclos, onSuccess, onCancel }: EnclosFormPr
         {/* Actions */}
         <div className="flex gap-4">
           <Button type="submit" disabled={isPending} className="flex-1">
-            {isPending ? "Sauvegarde..." : enclos ? "Modifier" : "Créer"}
+            {isPending
+              ? "Sauvegarde..."
+              : enclos
+              ? "Modifier l'enclos"
+              : "Créer l'enclos"}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isPending}
+          >
             Annuler
           </Button>
         </div>

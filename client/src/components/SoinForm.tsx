@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { z } from "zod";
 
+// Définition du schéma Zod
 const soinSchema = z.object({
   lapinId: z.string().min(1, "Sélectionner un lapin"),
   titre: z.string().min(1, "Titre requis"),
@@ -16,7 +17,7 @@ const soinSchema = z.object({
   gravite: z.enum(["légère", "modérée", "grave"]),
   traitement: z.string().optional(),
   veterinaire: z.string().optional(),
-  cout: z.number().min(0).optional(),
+  cout: z.number().nonnegative("Le coût ne peut pas être négatif").optional(),
   status: z.enum(["en_cours", "terminé", "suspendu"]),
   notes: z.string().optional(),
 });
@@ -29,9 +30,53 @@ interface SoinFormProps {
   onCancel: () => void;
 }
 
+// Fonction asynchrone pour la requête API de récupération des lapins
+const fetchLapins = async () => {
+  const response = await fetch("/api/lapins");
+  if (!response.ok) {
+    throw new Error("Erreur lors de la récupération des lapins");
+  }
+  return response.json();
+};
+
+// Fonction asynchrone pour la requête API de sauvegarde
+const saveSoin = async (data: SoinFormData) => {
+  const method = data.id ? 'PUT' : 'POST';
+  const url = data.id ? `/api/soins/${data.id}` : "/api/soins";
+  
+  const response = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Erreur lors de la sauvegarde du soin");
+  }
+  return response.json();
+};
+
+
 export default function SoinForm({ soin, onSuccess, onCancel }: SoinFormProps) {
-  const { data: lapins = [] } = useQuery({
+  // Gestion de la requête de récupération des lapins
+  const { data: lapins, isLoading: isLoadingLapins, isError: isErrorLapins } = useQuery({
     queryKey: ["/api/lapins"],
+    queryFn: fetchLapins,
+  });
+
+  // Gestion de la mutation pour la sauvegarde du soin
+  const mutation = useMutation({
+    mutationFn: saveSoin,
+    onSuccess: () => {
+      onSuccess();
+    },
+    onError: (error) => {
+      console.error("Erreur de sauvegarde:", error.message);
+      // Afficher un message d'erreur à l'utilisateur (par exemple, via un toast)
+    },
   });
 
   const form = useForm<SoinFormData>({
@@ -44,19 +89,24 @@ export default function SoinForm({ soin, onSuccess, onCancel }: SoinFormProps) {
       gravite: soin?.gravite || "légère",
       traitement: soin?.traitement || "",
       veterinaire: soin?.veterinaire || "",
-      cout: soin?.cout || undefined,
+      // Correction ici: Utilisation de `null` ou `undefined` pour un champ facultatif
+      cout: soin?.cout || undefined, 
       status: soin?.status || "en_cours",
       notes: soin?.notes || "",
     },
   });
 
   const onSubmit = (data: SoinFormData) => {
-    console.log('Soin data:', data);
-    // Simulation de la sauvegarde
-    setTimeout(() => {
-      onSuccess();
-    }, 500);
+    mutation.mutate(data);
   };
+  
+  if (isLoadingLapins) {
+    return <div className="text-center p-8">Chargement des lapins...</div>;
+  }
+  
+  if (isErrorLapins) {
+    return <div className="text-center p-8 text-red-500">Une erreur est survenue lors du chargement.</div>;
+  }
 
   return (
     <Form {...form}>
@@ -258,10 +308,10 @@ export default function SoinForm({ soin, onSuccess, onCancel }: SoinFormProps) {
         />
 
         <div className="flex gap-4">
-          <Button type="submit" className="flex-1">
-            {soin ? "Modifier" : "Enregistrer"}
+          <Button type="submit" className="flex-1" disabled={mutation.isPending}>
+            {mutation.isPending ? "Sauvegarde..." : (soin ? "Modifier" : "Enregistrer")}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={mutation.isPending}>
             Annuler
           </Button>
         </div>

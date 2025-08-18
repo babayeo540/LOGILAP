@@ -1,21 +1,58 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
+
+// Définition de l'interface et du schéma de validation
+interface Article {
+  id: string;
+  nom: string;
+  categorie: "alimentation" | "medicament" | "equipement" | "litiere";
+  description: string;
+  stockActuel: number;
+  stockMinimum: number;
+  stockMaximum: number;
+  unite: string;
+  prixUnitaire: number;
+  fournisseur?: string;
+  datePeremption?: string;
+  emplacementStock?: string;
+}
 
 const articleSchema = z.object({
   nom: z.string().min(1, "Nom requis"),
-  categorie: z.enum(["alimentation", "medicament", "equipement", "litiere"]),
+  categorie: z.enum([
+    "alimentation",
+    "medicament",
+    "equipement",
+    "litiere",
+  ]),
   description: z.string().min(1, "Description requise"),
-  stockActuel: z.number().min(0, "Stock actuel doit être positif"),
-  stockMinimum: z.number().min(0, "Stock minimum doit être positif"),
-  stockMaximum: z.number().min(1, "Stock maximum doit être positif"),
+  stockActuel: z.coerce.number().min(0, "Le stock actuel doit être positif"),
+  stockMinimum: z.coerce.number().min(0, "Le stock minimum doit être positif"),
+  stockMaximum: z.coerce.number().min(1, "Le stock maximum doit être positif"),
   unite: z.string().min(1, "Unité requise"),
-  prixUnitaire: z.number().min(0, "Prix unitaire doit être positif"),
+  prixUnitaire: z.coerce.number().min(0, "Le prix unitaire doit être positif"),
   fournisseur: z.string().optional(),
   datePeremption: z.string().optional(),
   emplacementStock: z.string().optional(),
@@ -24,229 +61,210 @@ const articleSchema = z.object({
 type ArticleFormData = z.infer<typeof articleSchema>;
 
 interface ArticleFormProps {
-  article?: any;
+  article?: Article | null;
   onSuccess: () => void;
   onCancel: () => void;
 }
 
-export default function ArticleForm({ article, onSuccess, onCancel }: ArticleFormProps) {
+export default function ArticleForm({
+  article,
+  onSuccess,
+  onCancel,
+}: ArticleFormProps) {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
   const form = useForm<ArticleFormData>({
     resolver: zodResolver(articleSchema),
     defaultValues: {
       nom: article?.nom || "",
       categorie: article?.categorie || "alimentation",
       description: article?.description || "",
-      stockActuel: article?.stockActuel || 0,
-      stockMinimum: article?.stockMinimum || 0,
-      stockMaximum: article?.stockMaximum || 0,
+      stockActuel: article?.stockActuel ?? 0,
+      stockMinimum: article?.stockMinimum ?? 0,
+      stockMaximum: article?.stockMaximum ?? 1,
       unite: article?.unite || "",
-      prixUnitaire: article?.prixUnitaire || 0,
+      prixUnitaire: article?.prixUnitaire ?? 0,
       fournisseur: article?.fournisseur || "",
       datePeremption: article?.datePeremption || "",
       emplacementStock: article?.emplacementStock || "",
     },
   });
 
-  const onSubmit = (data: ArticleFormData) => {
-    console.log('Article data:', data);
-    // Validation des stocks
-    if (data.stockMaximum <= data.stockMinimum) {
-      form.setError("stockMaximum", {
-        message: "Le stock maximum doit être supérieur au stock minimum"
+  const articleMutation = useMutation({
+    mutationFn: (data: ArticleFormData) => {
+      if (article?.id) {
+        return apiRequest(`/api/stocks/articles/${article.id}`, {
+          method: "PUT",
+          body: JSON.stringify(data),
+        });
+      } else {
+        return apiRequest("/api/stocks/articles", {
+          method: "POST",
+          body: JSON.stringify(data),
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["/api/stocks/articles"],
       });
-      return;
-    }
-    
-    // Simulation de la sauvegarde
-    setTimeout(() => {
       onSuccess();
-    }, 500);
+      toast({
+        title: "Succès",
+        description: `Article ${
+          article ? "modifié" : "enregistré"
+        } avec succès.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erreur",
+        description: `Échec de l'opération : ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: ArticleFormData) => {
+    articleMutation.mutate(data);
   };
+
+  const isPending = articleMutation.isPending;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Informations de base</h3>
-            
-            <FormField
-              control={form.control}
-              name="nom"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom de l'article *</FormLabel>
+        {/* Nom et Catégorie */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="nom"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom de l'article</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="categorie"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Catégorie</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  disabled={isPending}
+                >
                   <FormControl>
-                    <Input {...field} placeholder="Ex: Granulés lapins croissance" />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez une catégorie" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="categorie"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Catégorie *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une catégorie" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="alimentation">Alimentation</SelectItem>
-                      <SelectItem value="medicament">Médicaments</SelectItem>
-                      <SelectItem value="equipement">Équipements</SelectItem>
-                      <SelectItem value="litiere">Litière</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description *</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      {...field} 
-                      placeholder="Description détaillée de l'article"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="unite"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Unité de mesure *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une unité" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="kg">Kilogrammes (kg)</SelectItem>
-                      <SelectItem value="g">Grammes (g)</SelectItem>
-                      <SelectItem value="litres">Litres (L)</SelectItem>
-                      <SelectItem value="ml">Millilitres (ml)</SelectItem>
-                      <SelectItem value="pièces">Pièces</SelectItem>
-                      <SelectItem value="bottes">Bottes</SelectItem>
-                      <SelectItem value="sacs">Sacs</SelectItem>
-                      <SelectItem value="flacons">Flacons</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Gestion des stocks</h3>
-            
-            <FormField
-              control={form.control}
-              name="stockActuel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stock actuel *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="stockMinimum"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stock minimum *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="0"
-                      step="0.01"
-                      placeholder="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-xs text-gray-500">Seuil d'alerte de réapprovisionnement</p>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="stockMaximum"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stock maximum *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="1"
-                      step="0.01"
-                      placeholder="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                  <p className="text-xs text-gray-500">Capacité maximale de stockage</p>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="prixUnitaire"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prix unitaire (€) *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="number" 
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+                  <SelectContent>
+                    <SelectItem value="alimentation">Alimentation</SelectItem>
+                    <SelectItem value="medicament">Médicament</SelectItem>
+                    <SelectItem value="equipement">Équipement</SelectItem>
+                    <SelectItem value="litiere">Litière</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Description */}
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea {...field} rows={3} disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Stocks et Unité */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <FormField
+            control={form.control}
+            name="stockActuel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stock actuel</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="stockMinimum"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stock min.</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="stockMaximum"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Stock max.</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="unite"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unité</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ex: kg, L, pièce" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Prix, Fournisseur et Emplacement */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="prixUnitaire"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Prix unitaire</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="fournisseur"
@@ -254,21 +272,20 @@ export default function ArticleForm({ article, onSuccess, onCancel }: ArticleFor
               <FormItem>
                 <FormLabel>Fournisseur</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Nom du fournisseur" />
+                  <Input {...field} disabled={isPending} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="emplacementStock"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Emplacement de stockage</FormLabel>
+                <FormLabel>Emplacement</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: Hangar A - Section 1" />
+                  <Input {...field} disabled={isPending} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -276,6 +293,7 @@ export default function ArticleForm({ article, onSuccess, onCancel }: ArticleFor
           />
         </div>
 
+        {/* Date de péremption */}
         <FormField
           control={form.control}
           name="datePeremption"
@@ -283,7 +301,7 @@ export default function ArticleForm({ article, onSuccess, onCancel }: ArticleFor
             <FormItem>
               <FormLabel>Date de péremption</FormLabel>
               <FormControl>
-                <Input {...field} type="date" />
+                <Input {...field} type="date" disabled={isPending} />
               </FormControl>
               <FormMessage />
               <p className="text-xs text-gray-500">
@@ -293,11 +311,21 @@ export default function ArticleForm({ article, onSuccess, onCancel }: ArticleFor
           )}
         />
 
+        {/* Actions */}
         <div className="flex gap-4">
-          <Button type="submit" className="flex-1">
-            {article ? "Modifier" : "Enregistrer"}
+          <Button type="submit" className="flex-1" disabled={isPending}>
+            {isPending
+              ? "Sauvegarde..."
+              : article
+              ? "Modifier"
+              : "Enregistrer"}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isPending}
+          >
             Annuler
           </Button>
         </div>

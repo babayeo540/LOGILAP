@@ -7,14 +7,34 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { insertLapinSchema } from "@shared/schema";
+import { insertLapinSchema, Enclos } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
+
+// Interfaces pour un typage fort
+interface Lapin {
+  id?: string;
+  identifiant: string;
+  sexe: "male" | "femelle";
+  race: string;
+  dateNaissance: string;
+  poids: number;
+  statut:
+    | "reproduction"
+    | "engraissement"
+    | "malade"
+    | "gestation"
+    | "laiton";
+  enclosId: string;
+  notes?: string;
+  pereId?: string;
+  mereId?: string;
+}
 
 type LapinFormData = z.infer<typeof insertLapinSchema>;
 
 interface LapinFormProps {
-  lapin?: any;
+  lapin?: Lapin;
   onSuccess: () => void;
   onCancel: () => void;
 }
@@ -23,7 +43,7 @@ export default function LapinForm({ lapin, onSuccess, onCancel }: LapinFormProps
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: enclos = [] } = useQuery({
+  const { data: enclos = [] } = useQuery<Enclos[]>({
     queryKey: ["/api/enclos"],
   });
 
@@ -32,11 +52,10 @@ export default function LapinForm({ lapin, onSuccess, onCancel }: LapinFormProps
     defaultValues: {
       identifiant: lapin?.identifiant || "",
       race: lapin?.race || "",
-      sexe: lapin?.sexe || "femelle",
+      sexe: lapin?.sexe || "",
       dateNaissance: lapin?.dateNaissance || "",
-      couleur: lapin?.couleur || "",
-      status: lapin?.status || "engraissement",
-      healthStatus: lapin?.healthStatus || "sain",
+      poids: lapin?.poids || 0,
+      statut: lapin?.statut || "engraissement",
       enclosId: lapin?.enclosId || "",
       pereId: lapin?.pereId || "",
       mereId: lapin?.mereId || "",
@@ -44,252 +63,189 @@ export default function LapinForm({ lapin, onSuccess, onCancel }: LapinFormProps
     },
   });
 
-  const createMutation = useMutation({
+  // Utilisation d'une seule mutation pour la création et la mise à jour
+  const mutation = useMutation({
     mutationFn: async (data: LapinFormData) => {
-      const response = await fetch("/api/lapins", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la création");
+      if (lapin?.id) {
+        return await apiRequest(`/api/lapins/${lapin.id}`, {
+          method: 'PUT',
+          body: JSON.stringify(data),
+        });
+      } else {
+        return await apiRequest('/api/lapins', {
+          method: 'POST',
+          body: JSON.stringify(data),
+        });
       }
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/lapins"] });
       toast({
         title: "Succès",
-        description: "Lapin créé avec succès",
+        description: `Lapin ${lapin?.id ? "modifié" : "ajouté"} avec succès.`,
       });
       onSuccess();
     },
     onError: (error: any) => {
       toast({
         title: "Erreur",
-        description: error.message || "Erreur lors de la création",
+        description: `Impossible de sauvegarder le lapin : ${error.message || "Erreur inconnue"}`,
         variant: "destructive",
       });
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async (data: LapinFormData) => {
-      const response = await fetch(`/api/lapins/${lapin.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la modification");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/lapins"] });
-      toast({
-        title: "Succès",
-        description: "Lapin modifié avec succès",
-      });
-      onSuccess();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erreur",
-        description: error.message || "Erreur lors de la modification",
-        variant: "destructive",
-      });
-    },
-  });
+  const { isPending } = mutation;
 
   const onSubmit = (data: LapinFormData) => {
-    if (lapin) {
-      updateMutation.mutate(data);
-    } else {
-      createMutation.mutate(data);
-    }
+    mutation.mutate(data);
   };
-
-  const isPending = createMutation.isPending || updateMutation.isPending;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Informations de base */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Informations de base</h3>
-            
-            <FormField
-              control={form.control}
-              name="identifiant"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Identifiant *</FormLabel>
+        {/* Identifiant, Race, Sexe, Date de Naissance */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <FormField
+            control={form.control}
+            name="identifiant"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Identifiant</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ex: L-123" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="race"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Race</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ex: Géant des Flandres" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sexe"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sexe</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
                   <FormControl>
-                    <Input {...field} placeholder="L2024-001" disabled={isPending} />
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le sexe" />
+                    </SelectTrigger>
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  <SelectContent>
+                    <SelectItem value="male">Mâle</SelectItem>
+                    <SelectItem value="femelle">Femelle</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="race"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Race *</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ex: Fauve de Bourgogne" disabled={isPending} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="sexe"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sexe *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le sexe" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="male">Mâle</SelectItem>
-                      <SelectItem value="femelle">Femelle</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="couleur"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Couleur</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Ex: Fauve, Blanc, Gris" disabled={isPending} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Dates et poids */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Dates et poids</h3>
-            
-            <FormField
-              control={form.control}
-              name="dateNaissance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date de naissance *</FormLabel>
-                  <FormControl>
-                    <Input 
-                      {...field} 
-                      type="date" 
-                      disabled={isPending}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="healthStatus"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>État de santé *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner l'état" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="sain">Sain</SelectItem>
-                      <SelectItem value="malade">Malade</SelectItem>
-                      <SelectItem value="en_quarantaine">En quarantaine</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Statut *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le statut" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="reproducteur">Reproducteur</SelectItem>
-                      <SelectItem value="engraissement">Engraissement</SelectItem>
-                      <SelectItem value="stock_a_vendre">Stock à vendre</SelectItem>
-                      <SelectItem value="vendu">Vendu</SelectItem>
-                      <SelectItem value="decede">Décédé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="enclosId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Enclos</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un enclos" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Aucun enclos</SelectItem>
-                      {enclos.map((e: any) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {e.nom} ({e.type})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control}
+            name="dateNaissance"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date de Naissance</FormLabel>
+                <FormControl>
+                  <Input {...field} type="date" disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
-        {/* Généalogie */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Généalogie</h3>
+        {/* Poids, Statut, Enclos */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField
+            control={form.control}
+            name="poids"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Poids (kg)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="number"
+                    step="0.01"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                    disabled={isPending}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="statut"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner le statut" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="reproduction">Reproduction</SelectItem>
+                    <SelectItem value="engraissement">Engraissement</SelectItem>
+                    <SelectItem value="malade">Malade</SelectItem>
+                    <SelectItem value="gestation">Gestation</SelectItem>
+                    <SelectItem value="laiton">Laiton</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="enclosId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Enclos</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner l'enclos" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {enclos.map((e) => (
+                      <SelectItem key={e.id} value={e.id}>
+                        {e.nom}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Parent IDs (for new rabbits only) */}
+        {!lapin?.id && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
@@ -319,7 +275,7 @@ export default function LapinForm({ lapin, onSuccess, onCancel }: LapinFormProps
               )}
             />
           </div>
-        </div>
+        )}
 
         {/* Notes */}
         <FormField
@@ -329,8 +285,8 @@ export default function LapinForm({ lapin, onSuccess, onCancel }: LapinFormProps
             <FormItem>
               <FormLabel>Notes</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field} 
+                <Textarea
+                  {...field}
                   placeholder="Observations, particularités..."
                   rows={3}
                   disabled={isPending}

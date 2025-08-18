@@ -1,19 +1,49 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { z } from "zod";
+import { useState } from "react";
 
+// Le schéma Zod est amélioré pour une validation plus robuste.
 const venteSchema = z.object({
-  description: z.string().min(1, "Description requise"),
-  montant: z.number().min(0.01, "Le montant doit être positif"),
-  date: z.string().min(1, "Date requise"),
-  status: z.enum(["payé", "en_attente", "annulé"]),
-  client: z.string().optional(),
-  notes: z.string().optional(),
+  description: z.string().min(1, "La description est requise."),
+  // Le champ montant gère désormais l'input string et le transforme en nombre.
+  montant: z.string().transform((val, ctx) => {
+    const parsed = parseFloat(val);
+    if (isNaN(parsed) || parsed <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Le montant doit être un nombre positif.",
+      });
+      return z.NEVER;
+    }
+    return parsed;
+  }),
+  date: z.string().min(1, "La date est requise."),
+  // Ajout d'un message d'erreur personnalisé pour l'enum.
+  status: z.enum(["payé", "en_attente", "annulé"], {
+    errorMap: () => ({ message: "Le statut est invalide." }),
+  }),
+  // Les champs optionnels peuvent être indéfinis ou des chaînes vides.
+  client: z.string().optional().or(z.literal("")),
+  notes: z.string().optional().or(z.literal("")),
 });
 
 type VenteFormData = z.infer<typeof venteSchema>;
@@ -25,11 +55,15 @@ interface VenteFormProps {
 }
 
 export default function VenteForm({ vente, onSuccess, onCancel }: VenteFormProps) {
+  // Ajout de l'état de soumission pour désactiver les boutons.
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<VenteFormData>({
     resolver: zodResolver(venteSchema),
     defaultValues: {
       description: vente?.description || "",
-      montant: vente?.montant || 0,
+      // Le montant est maintenant une chaîne par défaut pour correspondre au schéma.
+      montant: vente?.montant ? String(vente.montant) : "0", 
       date: vente?.date || new Date().toISOString().split('T')[0],
       status: vente?.status || "en_attente",
       client: vente?.client || "",
@@ -37,12 +71,32 @@ export default function VenteForm({ vente, onSuccess, onCancel }: VenteFormProps
     },
   });
 
-  const onSubmit = (data: VenteFormData) => {
-    console.log('Vente data:', data);
-    // Simulation de la sauvegarde
-    setTimeout(() => {
+  const onSubmit = async (data: VenteFormData) => {
+    setIsSubmitting(true);
+    try {
+      // Remplacez cette simulation par votre appel d'API de production réel
+      // Exemple :
+      // const response = await fetch('/api/ventes', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(data),
+      // });
+      //
+      // if (!response.ok) {
+      //   throw new Error('Erreur de l'API');
+      // }
+
       onSuccess();
-    }, 500);
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde :", error);
+      // Gérer l'erreur en affichant un message à l'utilisateur
+      form.setError("root.serverError", {
+        type: "400",
+        message: "Une erreur est survenue lors de l'enregistrement."
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -79,7 +133,7 @@ export default function VenteForm({ vente, onSuccess, onCancel }: VenteFormProps
                       step="0.01"
                       min="0"
                       placeholder="15.00"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      // Le `onChange` est retiré car la transformation est gérée par Zod
                     />
                   </FormControl>
                   <FormMessage />
@@ -161,12 +215,24 @@ export default function VenteForm({ vente, onSuccess, onCancel }: VenteFormProps
             </FormItem>
           )}
         />
+        
+        {/* Affichage des erreurs globales de l'API */}
+        {form.formState.errors.root?.serverError && (
+          <p className="text-red-500 text-sm">
+            {form.formState.errors.root.serverError.message}
+          </p>
+        )}
 
         <div className="flex gap-4">
-          <Button type="submit" className="flex-1">
-            {vente ? "Modifier" : "Enregistrer"}
+          <Button type="submit" className="flex-1" disabled={isSubmitting}>
+            {isSubmitting ? "En cours..." : vente ? "Modifier" : "Enregistrer"}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Annuler
           </Button>
         </div>

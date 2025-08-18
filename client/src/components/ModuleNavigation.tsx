@@ -15,7 +15,7 @@ import {
   BarChart3,
   Settings
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 
 interface ModuleNavigationProps {
   currentModule: string;
@@ -23,11 +23,23 @@ interface ModuleNavigationProps {
   moduleDescription?: string;
 }
 
+/**
+ * Composant de navigation pour les modules de l'application.
+ * Fournit une barre de navigation avec un fil d'Ariane, un titre,
+ * des liens de navigation rapide et une gestion de la navigation pour mobile.
+ *
+ * @param {string} currentModule - L'identifiant du module actif (ex: 'lapins').
+ * @param {string} moduleTitle - Le titre à afficher pour le module.
+ * @param {string} [moduleDescription] - Une brève description optionnelle du module.
+ */
 export default function ModuleNavigation({ 
   currentModule, 
   moduleTitle, 
   moduleDescription 
 }: ModuleNavigationProps) {
+  // Utilisation de useLocation pour une navigation SPA correcte
+  const [, setLocation] = useLocation();
+
   const modules = [
     { id: "home", name: "Accueil", icon: Home, path: "/", color: "text-gray-600" },
     { id: "lapins", name: "Lapins", icon: Rabbit, path: "/lapins", color: "text-amber-600" },
@@ -48,7 +60,7 @@ export default function ModuleNavigation({
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
-        {/* Breadcrumb et titre */}
+        {/* Breadcrumb et titre du module */}
         <div className="flex-1">
           <div className="flex items-center space-x-2 text-sm text-gray-500 mb-2">
             <Link href="/" className="hover:text-gray-700 flex items-center gap-1">
@@ -76,7 +88,7 @@ export default function ModuleNavigation({
           </div>
         </div>
 
-        {/* Navigation rapide */}
+        {/* Navigation rapide et mobile */}
         <div className="flex items-center gap-2">
           {/* Bouton retour */}
           <Link href="/">
@@ -86,7 +98,7 @@ export default function ModuleNavigation({
             </Button>
           </Link>
 
-          {/* Navigation entre modules */}
+          {/* Navigation entre modules (version large) */}
           <div className="hidden lg:flex items-center gap-1 ml-4 pl-4 border-l border-gray-200">
             {modules.slice(1).map((module) => (
               <Link key={module.id} href={module.path}>
@@ -102,17 +114,19 @@ export default function ModuleNavigation({
             ))}
           </div>
 
-          {/* Menu mobile */}
+          {/* Menu de sélection pour la navigation mobile */}
           <div className="lg:hidden">
             <select
               value={currentModule}
               onChange={(e) => {
-                const module = modules.find(m => m.id === e.target.value);
-                if (module) {
-                  window.location.href = module.path;
+                // Utilisation de setLocation de wouter pour une navigation SPA sans rechargement
+                const selectedPath = modules.find(m => m.id === e.target.value)?.path;
+                if (selectedPath) {
+                  setLocation(selectedPath);
                 }
               }}
               className="px-3 py-1.5 border border-gray-300 rounded-md text-sm bg-white"
+              aria-label="Sélectionner un module"
             >
               {modules.map((module) => (
                 <option key={module.id} value={module.id}>
@@ -121,21 +135,6 @@ export default function ModuleNavigation({
               ))}
             </select>
           </div>
-        </div>
-      </div>
-
-      {/* Indicateur de statut */}
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-        <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>Module: <strong className="text-gray-700">{moduleTitle}</strong></span>
-          <Badge variant="outline" className="text-xs">
-            Fonctionnel
-          </Badge>
-        </div>
-        
-        <div className="flex items-center gap-2 text-xs text-gray-500">
-          <span>Modules disponibles: {modules.length - 1}</span>
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
         </div>
       </div>
     </div>

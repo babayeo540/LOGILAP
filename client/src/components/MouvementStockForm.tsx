@@ -11,27 +11,24 @@ import { Card, CardContent } from "@/components/ui/card";
 import { z } from "zod";
 import { Plus, Minus } from "lucide-react";
 
-const mouvementSchema = z.object({
-  articleId: z.string().min(1, "Sélectionner un article"),
-  type: z.enum(["entree", "sortie"]),
-  quantite: z.number().min(0.01, "Quantité doit être positive"),
-  motif: z.string().min(1, "Motif requis"),
-  cout: z.number().min(0).optional(),
-  responsable: z.string().optional(),
-  notes: z.string().optional(),
-});
-
-type MouvementFormData = z.infer<typeof mouvementSchema>;
-
-interface MouvementStockFormProps {
-  articleSelectionne?: any;
-  onSuccess: () => void;
-  onCancel: () => void;
+/**
+ * Interface pour représenter un article de stock.
+ */
+interface Article {
+  id: string;
+  nom: string;
+  categorie: string;
+  stockActuel: number;
+  unite: string;
+  prixUnitaire: number;
 }
 
-export default function MouvementStockForm({ articleSelectionne, onSuccess, onCancel }: MouvementStockFormProps) {
-  // Mock data pour les articles - remplacer par vraie API
-  const mockArticles = [
+/**
+ * Hook de données pour simuler la récupération des articles de stock.
+ * En production, remplacer la fonction `queryFn` par un appel à une API (ex: axios.get('/api/articles')).
+ */
+const useGetStockArticles = () => {
+  const mockArticles: Article[] = [
     {
       id: "1",
       nom: "Granulés lapins croissance",
@@ -58,10 +55,66 @@ export default function MouvementStockForm({ articleSelectionne, onSuccess, onCa
     }
   ];
 
+  return useQuery({
+    queryKey: ['stockArticles'],
+    queryFn: () => new Promise<Article[]>(resolve => setTimeout(() => resolve(mockArticles), 500)),
+  });
+};
+
+// Schéma de validation Zod pour le formulaire.
+const mouvementSchema = z.object({
+  articleId: z.string().min(1, "Sélectionner un article"),
+  type: z.enum(["entree", "sortie"]),
+  quantite: z.coerce.number({
+    invalid_type_error: "Quantité doit être un nombre",
+  }).min(0.01, "La quantité doit être positive"),
+  motif: z.string().min(1, "Motif requis"),
+  cout: z.coerce.number().min(0).optional(),
+  responsable: z.string().optional(),
+  notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+  // En production, cette liste d'articles viendrait de `useGetStockArticles`
+  // pour s'assurer que les données sont à jour.
+  const articles = [
+    { id: "1", stockActuel: 45, unite: "kg" },
+    { id: "2", stockActuel: 8, unite: "bottes" },
+    { id: "3", stockActuel: 2, unite: "flacons" },
+  ];
+
+  if (data.type === "sortie") {
+    const article = articles.find(a => a.id === data.articleId);
+    if (article && data.quantite > article.stockActuel) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['quantite'],
+        message: `Stock insuffisant (disponible: ${article.stockActuel} ${article.unite})`,
+      });
+    }
+  }
+});
+
+type MouvementFormData = z.infer<typeof mouvementSchema>;
+
+interface MouvementStockFormProps {
+  articleSelectionneId?: string;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
+/**
+ * Composant de formulaire pour enregistrer un mouvement de stock (entrée ou sortie).
+ *
+ * @param {string} articleSelectionneId - L'ID de l'article présélectionné (optionnel).
+ * @param {Function} onSuccess - Callback à appeler en cas de succès de la soumission.
+ * @param {Function} onCancel - Callback pour annuler le formulaire.
+ */
+export default function MouvementStockForm({ articleSelectionneId, onSuccess, onCancel }: MouvementStockFormProps) {
+  const { data: articles, isLoading, isError } = useGetStockArticles();
+
   const form = useForm<MouvementFormData>({
     resolver: zodResolver(mouvementSchema),
     defaultValues: {
-      articleId: articleSelectionne?.id || "",
+      articleId: articleSelectionneId || "",
       type: "entree",
       quantite: 0,
       motif: "",
@@ -75,25 +128,14 @@ export default function MouvementStockForm({ articleSelectionne, onSuccess, onCa
   const type = form.watch("type");
   const quantite = form.watch("quantite");
 
-  const articleSelectionneForm = mockArticles.find(a => a.id === articleId);
+  const articleSelectionneForm = articles?.find(a => a.id === articleId);
 
   const onSubmit = (data: MouvementFormData) => {
-    console.log('Mouvement data:', data);
+    // Remplacer ce code par un appel à l'API de production
+    // Ex: await axios.post('/api/mouvements', data);
     
-    // Validation pour sortie de stock
-    if (data.type === "sortie" && articleSelectionneForm) {
-      if (data.quantite > articleSelectionneForm.stockActuel) {
-        form.setError("quantite", {
-          message: `Stock insuffisant (disponible: ${articleSelectionneForm.stockActuel} ${articleSelectionneForm.unite})`
-        });
-        return;
-      }
-    }
-    
-    // Simulation de la sauvegarde
-    setTimeout(() => {
-      onSuccess();
-    }, 500);
+    // Après un appel API réussi
+    onSuccess();
   };
 
   const motifsPredefinisEntree = [
@@ -114,6 +156,14 @@ export default function MouvementStockForm({ articleSelectionne, onSuccess, onCa
   ];
 
   const motifsDisponibles = type === "entree" ? motifsPredefinisEntree : motifsPredefinsisSortie;
+
+  if (isLoading) {
+    return <div>Chargement des articles...</div>;
+  }
+
+  if (isError) {
+    return <div>Une erreur est survenue lors du chargement des articles.</div>;
+  }
 
   return (
     <Form {...form}>
@@ -157,7 +207,7 @@ export default function MouvementStockForm({ articleSelectionne, onSuccess, onCa
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {mockArticles.map((article) => (
+                      {articles?.map((article) => (
                         <SelectItem key={article.id} value={article.id}>
                           {article.nom} ({article.stockActuel} {article.unite})
                         </SelectItem>
@@ -208,7 +258,6 @@ export default function MouvementStockForm({ articleSelectionne, onSuccess, onCa
                       min="0.01"
                       step="0.01"
                       placeholder="0"
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                     />
                   </FormControl>
                   <FormMessage />
@@ -271,7 +320,6 @@ export default function MouvementStockForm({ articleSelectionne, onSuccess, onCa
                       step="0.01"
                       placeholder="0.00"
                       value={field.value || ""}
-                      onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                     />
                   </FormControl>
                   <FormMessage />

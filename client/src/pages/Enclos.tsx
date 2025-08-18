@@ -1,53 +1,98 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Home, 
-  Plus, 
-  Search, 
-  Eye, 
-  Edit, 
+import {
+  Home,
+  Plus,
+  Search,
+  Eye,
+  Edit,
   Trash2,
   Users,
   AlertTriangle,
   CheckCircle,
-  XCircle
+  XCircle,
+  Rabbit,
 } from "lucide-react";
 import EnclosForm from "../components/EnclosForm";
 import ModuleNavigation from "@/components/ModuleNavigation";
+
+// Définition de types pour une meilleure sécurité
+interface Enclos {
+  id: string;
+  nom: string;
+  type: string;
+  capacite: number;
+  statut: "sain" | "nettoyage" | "quarantaine";
+}
+
+interface Lapin {
+  id: string;
+  enclosId: string;
+}
 
 export default function Enclos() {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
-  const [editingEnclos, setEditingEnclos] = useState<any>(null);
+  const [editingEnclos, setEditingEnclos] = useState<Enclos | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const { data: enclos = [], isLoading } = useQuery({
+  // Utilisation de useQuery pour la logique de production
+  const {
+    data: enclos = [],
+    isLoading,
+    isError,
+  } = useQuery<Enclos[]>({
     queryKey: ["/api/enclos"],
+    queryFn: async () => {
+      const response = await fetch("/api/enclos");
+      if (!response.ok) {
+        throw new Error("Échec de la récupération des enclos");
+      }
+      return response.json();
+    },
   });
 
-  const { data: lapins = [] } = useQuery({
+  const { data: lapins = [] } = useQuery<Lapin[]>({
     queryKey: ["/api/lapins"],
+    queryFn: async () => {
+      const response = await fetch("/api/lapins");
+      if (!response.ok) {
+        throw new Error("Échec de la récupération des lapins");
+      }
+      return response.json();
+    },
   });
 
+  // Fonction de comptage des lapins par enclos, optimisée avec useMemo
+  const getNombreLapins = useMemo(() => {
+    const lapinsCount: { [key: string]: number } = {};
+    lapins.forEach((lapin) => {
+      if (lapin.enclosId) {
+        lapinsCount[lapin.enclosId] = (lapinsCount[lapin.enclosId] || 0) + 1;
+      }
+    });
+    return lapinsCount;
+  }, [lapins]);
+
+  // Mutation pour la suppression
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await fetch(`/api/enclos/${id}`, {
         method: "DELETE",
-        credentials: "include",
       });
       if (!response.ok) {
         const error = await response.json();
@@ -57,301 +102,207 @@ export default function Enclos() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/enclos"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/lapins"] });
       toast({
         title: "Succès",
         description: "Enclos supprimé avec succès",
       });
     },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Une erreur est survenue lors de la suppression.",
+        variant: "destructive",
+      });
+    },
   });
 
-  const filteredEnclos = (enclos as any[]).filter((e: any) => {
-    const matchesSearch = e.nom?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-    const matchesType = typeFilter === "all" || e.type === typeFilter;
-    return matchesSearch && matchesType;
-  });
-
-  const getStatusBadgeColor = (status: string) => {
-    switch (status) {
-      case "vide": return "bg-green-100 text-green-800";
-      case "occupe": return "bg-blue-100 text-blue-800";
-      case "a_nettoyer": return "bg-yellow-100 text-yellow-800";
-      case "en_maintenance": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+  const handleDelete = (enclosItem: Enclos) => {
+    if (getNombreLapins[enclosItem.id] > 0) {
+      toast({
+        title: "Action impossible",
+        description:
+          "Impossible de supprimer cet enclos, car il contient encore des lapins.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet enclos ?")) {
+      deleteMutation.mutate(enclosItem.id);
     }
   };
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "vide": return "Vide";
-      case "occupe": return "Occupé";
-      case "a_nettoyer": return "À nettoyer";
-      case "en_maintenance": return "En maintenance";
-      default: return status;
-    }
+  const handleEdit = (enclosItem: Enclos) => {
+    setEditingEnclos(enclosItem);
+    setShowForm(true);
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "maternite": return "Maternité";
-      case "engraissement": return "Engraissement";
-      case "quarantaine": return "Quarantaine";
-      case "reproducteur_male": return "Reproducteur mâle";
-      case "reproducteur_femelle": return "Reproducteur femelle";
-      default: return type;
-    }
-  };
+  const filteredEnclos = useMemo(() => {
+    return enclos
+      .filter((enclosItem) => {
+        const passesTypeFilter =
+          typeFilter === "all" || enclosItem.type === typeFilter;
+        const passesSearchTerm =
+          enclosItem.nom.toLowerCase().includes(searchTerm.toLowerCase());
+        return passesTypeFilter && passesSearchTerm;
+      })
+      .sort((a, b) => a.nom.localeCompare(b.nom));
+  }, [enclos, searchTerm, typeFilter]);
 
-  const getEnclosOccupancy = (enclosId: string) => {
-    const lapinsInEnclos = (lapins as any[]).filter((l: any) => l.enclosId === enclosId);
-    return lapinsInEnclos.length;
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Chargement des enclos...</p>
+      </div>
+    );
+  }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "vide": return <CheckCircle className="w-4 h-4" />;
-      case "occupe": return <Users className="w-4 h-4" />;
-      case "a_nettoyer": return <AlertTriangle className="w-4 h-4" />;
-      case "en_maintenance": return <XCircle className="w-4 h-4" />;
-      default: return <Home className="w-4 h-4" />;
-    }
-  };
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center min-h-screen text-red-600">
+        <p>
+          Erreur lors du chargement des enclos. Veuillez réessayer plus tard.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ModuleNavigation 
-        currentModule="enclos"
-        moduleTitle="Gestion des Enclos"
-        moduleDescription="Gérez vos installations et leur occupation"
-      />
-      
-      <div className="p-6 space-y-6">
-        {/* Header Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-gray-600">Actions rapides</span>
+    <div className="flex h-screen bg-gray-50">
+      <ModuleNavigation />
+      <div className="flex-1 flex flex-col p-8 overflow-y-auto">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <Home className="w-8 h-8 text-primary-600" />
+            Gestion des Enclos
+          </h1>
+          <p className="mt-2 text-gray-600">
+            Organisez et gérez les enclos de votre élevage.
+          </p>
+        </header>
+
+        {/* Action Bar */}
+        <div className="flex flex-col md:flex-row items-center justify-between mb-6 gap-4">
+          <div className="flex-1 w-full md:w-auto">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Rechercher un enclos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4"
+              />
+            </div>
           </div>
-          <Button 
-            onClick={() => setShowForm(true)}
-            className="bg-primary-600 hover:bg-primary-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nouvel Enclos
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="p-2 border rounded-md text-sm"
+            >
+              <option value="all">Tous les types</option>
+              <option value="cage">Cage</option>
+              <option value="parc">Parc</option>
+              <option value="clapier">Clapier</option>
+            </select>
+            <Button
+              onClick={() => {
+                setEditingEnclos(null);
+                setShowForm(true);
+              }}
+              className="bg-primary-600 hover:bg-primary-700 transition"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nouvel Enclos
+            </Button>
+          </div>
         </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Home className="text-blue-600 w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total</p>
-                <p className="text-2xl font-bold text-gray-900">{enclos.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="text-green-600 w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Disponibles</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {enclos.filter((e: any) => e.status === "vide").length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Users className="text-blue-600 w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Occupés</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {enclos.filter((e: any) => e.status === "occupe").length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="text-yellow-600 w-6 h-6" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">À nettoyer</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {enclos.filter((e: any) => e.status === "a_nettoyer").length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Rechercher par nom..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-              >
-                <option value="all">Tous les types</option>
-                <option value="maternite">Maternité</option>
-                <option value="engraissement">Engraissement</option>
-                <option value="quarantaine">Quarantaine</option>
-                <option value="reproducteur_male">Reproducteur mâle</option>
-                <option value="reproducteur_femelle">Reproducteur femelle</option>
-              </select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Enclos List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                <div className="h-8 bg-gray-200 rounded w-full"></div>
-              </CardContent>
-            </Card>
-          ))
-        ) : filteredEnclos.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <Home className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun enclos trouvé</h3>
-            <p className="text-gray-600">
-              {searchTerm || typeFilter !== "all" 
-                ? "Essayez de modifier vos critères de recherche"
-                : "Commencez par ajouter votre premier enclos"
-              }
-            </p>
+        {/* Enclos List */}
+        {filteredEnclos.length === 0 ? (
+          <div className="text-center text-gray-500 mt-8">
+            <p>Aucun enclos trouvé pour les critères de recherche.</p>
           </div>
         ) : (
-          filteredEnclos.map((enclosItem: any) => {
-            const occupancy = getEnclosOccupancy(enclosItem.id);
-            const occupancyRate = enclosItem.capaciteMax > 0 ? (occupancy / enclosItem.capaciteMax) * 100 : 0;
-            
-            return (
-              <Card key={enclosItem.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{enclosItem.nom}</CardTitle>
-                    <Badge className={getStatusBadgeColor(enclosItem.status)}>
-                      {getStatusIcon(enclosItem.status)}
-                      <span className="ml-1">{getStatusLabel(enclosItem.status)}</span>
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">{getTypeLabel(enclosItem.type)}</p>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Capacité:</span>
-                      <span className="font-medium">{enclosItem.capaciteMax} places</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Occupation:</span>
-                      <span className="font-medium">
-                        {occupancy}/{enclosItem.capaciteMax}
-                        {enclosItem.capaciteMax > 0 && (
-                          <span className="text-gray-500 ml-1">
-                            ({occupancyRate.toFixed(0)}%)
-                          </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredEnclos.map((enclosItem) => {
+              const nombreLapins = getNombreLapins[enclosItem.id] || 0;
+              const isFull = nombreLapins >= enclosItem.capacite;
+              return (
+                <Card
+                  key={enclosItem.id}
+                  className={`relative overflow-hidden ${
+                    enclosItem.statut === "quarantaine"
+                      ? "border-red-500"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="text-lg font-semibold text-gray-900">
+                        {enclosItem.nom}
+                      </span>
+                      <Badge variant="outline" className="text-xs font-medium">
+                        {enclosItem.type}
+                      </Badge>
+                    </CardTitle>
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      {nombreLapins}/{enclosItem.capacite} lapins
+                      {isFull && (
+                        <span className="text-red-500 font-semibold ml-2">
+                          (Plein)
+                        </span>
+                      )}
+                    </p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <span className="flex items-center gap-2">
+                        {enclosItem.statut === "sain" && (
+                          <CheckCircle className="w-4 h-4 text-green-500" />
                         )}
+                        {enclosItem.statut === "nettoyage" && (
+                          <XCircle className="w-4 h-4 text-orange-500" />
+                        )}
+                        {enclosItem.statut === "quarantaine" && (
+                          <AlertTriangle className="w-4 h-4 text-red-500" />
+                        )}
+                        <span className="font-medium text-gray-700">
+                          Statut : {enclosItem.statut}
+                        </span>
                       </span>
                     </div>
-                    
-                    {/* Barre de progression d'occupation */}
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-gray-600 mb-1">
-                        <span>Taux d'occupation</span>
-                        <span>{occupancyRate.toFixed(0)}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full transition-all ${
-                            occupancyRate === 0 ? 'bg-gray-300' :
-                            occupancyRate < 70 ? 'bg-green-500' :
-                            occupancyRate < 90 ? 'bg-yellow-500' : 'bg-red-500'
-                          }`}
-                          style={{ width: `${Math.min(occupancyRate, 100)}%` }}
-                        ></div>
-                      </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(enclosItem)}
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(enclosItem)}
+                        disabled={
+                          deleteMutation.isPending || nombreLapins > 0
+                        }
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
-                  </div>
-
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingEnclos(enclosItem);
-                        setShowForm(true);
-                      }}
-                      className="flex-1"
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Modifier
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (occupancy > 0) {
-                          toast({
-                            title: "Impossible de supprimer",
-                            description: "L'enclos contient encore des lapins",
-                            variant: "destructive",
-                          });
-                          return;
-                        }
-                        if (confirm("Êtes-vous sûr de vouloir supprimer cet enclos ?")) {
-                          deleteMutation.mutate(enclosItem.id);
-                        }
-                      }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -363,10 +314,9 @@ export default function Enclos() {
               {editingEnclos ? "Modifier l'enclos" : "Nouvel enclos"}
             </DialogTitle>
             <DialogDescription>
-              {editingEnclos 
+              {editingEnclos
                 ? "Modifiez les informations de l'enclos"
-                : "Ajoutez un nouvel enclos à votre élevage"
-              }
+                : "Ajoutez un nouvel enclos à votre élevage"}
             </DialogDescription>
           </DialogHeader>
           <EnclosForm
@@ -374,6 +324,11 @@ export default function Enclos() {
             onSuccess={() => {
               setShowForm(false);
               setEditingEnclos(null);
+              queryClient.invalidateQueries({ queryKey: ["/api/enclos"] });
+              toast({
+                title: "Succès",
+                description: "Enclos enregistré avec succès",
+              });
             }}
             onCancel={() => {
               setShowForm(false);
@@ -382,7 +337,6 @@ export default function Enclos() {
           />
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }
