@@ -64,14 +64,20 @@ function HomeContent() {
     data: stats,
     isLoading: isLoadingStats,
     isError: isErrorStats,
+    error, // Ajout de la variable d'erreur pour un meilleur débogage
   } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
     queryFn: async () => {
-      const response = await fetch("/api/dashboard/stats");
-      if (!response.ok) {
-        throw new Error("Échec de la récupération des statistiques");
+      try {
+        const response = await fetch("/api/dashboard/stats");
+        if (!response.ok) {
+          throw new Error(`Erreur réseau: ${response.statusText}`);
+        }
+        return await response.json();
+      } catch (err) {
+        console.error("Erreur lors de la récupération des statistiques:", err); // Log de l'erreur dans la console
+        throw new Error("Échec de la récupération des statistiques. Vérifiez la console pour plus de détails.");
       }
-      return response.json();
     },
   });
 
@@ -85,6 +91,8 @@ function HomeContent() {
 
   // Si la requête a échoué ou si les données ne sont pas présentes
   if (isErrorStats || !stats) {
+    // Affichage de l'erreur technique pour le débogage
+    console.error("Détails de l'erreur:", error);
     return (
       <div className="flex-1 flex items-center justify-center p-8 text-red-600">
         <p>
@@ -211,7 +219,7 @@ function HomeContent() {
           </div>
           <Button variant="ghost" size="icon">
             <Bell className="w-6 h-6" />
-            {stats.nombreNotifications > 0 && (
+            {stats && stats.nombreNotifications > 0 && (
               <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                 {stats.nombreNotifications}
               </span>
@@ -236,7 +244,7 @@ function HomeContent() {
               {/* Notifications */}
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="w-5 h-5" />
-                {stats.nombreNotifications > 0 && (
+                {stats && stats.nombreNotifications > 0 && (
                   <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
                     {stats.nombreNotifications}
                   </span>
