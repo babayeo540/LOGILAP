@@ -53,6 +53,7 @@ function HomeContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [rabbitMenuOpen, setRabbitMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -64,19 +65,31 @@ function HomeContent() {
     data: stats,
     isLoading: isLoadingStats,
     isError: isErrorStats,
-    error, // Ajout de la variable d'erreur pour un meilleur débogage
+    error,
   } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard/stats"],
     queryFn: async () => {
       try {
         const response = await fetch("/api/dashboard/stats");
+        
+        // Vérifier si la réponse est un succès HTTP
         if (!response.ok) {
-          throw new Error(`Erreur réseau: ${response.statusText}`);
+          throw new Error(`Erreur réseau: ${response.status} ${response.statusText}`);
         }
+
+        // Vérifier le Content-Type pour s'assurer qu'il s'agit de JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const textResponse = await response.text();
+          console.error("Réponse du serveur non-JSON:", textResponse);
+          throw new Error("Le serveur n'a pas renvoyé de JSON. Problème d'API côté serveur.");
+        }
+
         return await response.json();
       } catch (err) {
-        console.error("Erreur lors de la récupération des statistiques:", err); // Log de l'erreur dans la console
-        throw new Error("Échec de la récupération des statistiques. Vérifiez la console pour plus de détails.");
+        console.error("Erreur lors de la récupération des statistiques:", err);
+        setErrorMessage(err.message);
+        throw err;
       }
     },
   });
@@ -89,15 +102,18 @@ function HomeContent() {
     );
   }
 
-  // Si la requête a échoué ou si les données ne sont pas présentes
+  // Si la requête a échoué
   if (isErrorStats || !stats) {
-    // Affichage de l'erreur technique pour le débogage
-    console.error("Détails de l'erreur:", error);
     return (
-      <div className="flex-1 flex items-center justify-center p-8 text-red-600">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-red-600 text-center">
         <p>
-          Erreur lors du chargement des données. Veuillez réessayer plus tard.
+          Erreur lors du chargement des données. Veuillez vérifier la connexion ou l'API.
         </p>
+        {errorMessage && (
+          <p className="mt-4 p-2 bg-red-100 dark:bg-red-950 rounded-lg text-sm text-red-800 dark:text-red-300">
+            Détails : {errorMessage}
+          </p>
+        )}
       </div>
     );
   }
