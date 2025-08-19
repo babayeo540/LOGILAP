@@ -121,6 +121,21 @@ export interface IStorage {
     netProfit: number;
     availableCash: number;
   }>;
+
+  // Généalogie
+  getLapinGenealogy(lapinId: string): Promise<any>;
+  createVenteAvecGenalogie(vente: InsertVente): Promise<Vente>;
+
+  // Planning du personnel
+  getEmployePlanning(startDate?: Date, endDate?: Date): Promise<any[]>;
+  createEmployePlanning(planning: any): Promise<any>;
+  updateEmployePlanning(id: string, planning: any): Promise<any>;
+  deleteEmployePlanning(id: string): Promise<void>;
+
+  // Absences
+  getEmployeAbsences(employeId: string): Promise<any[]>;
+  createEmployeAbsence(absence: any): Promise<any>;
+  approveEmployeAbsence(id: string, approved: boolean): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -712,6 +727,195 @@ export class DatabaseStorage implements IStorage {
       await db.execute(sql`VACUUM ANALYZE;`);
     } catch (error) {
       console.error("Error optimizing database:", error);
+      throw error;
+    }
+  }
+
+  // Généalogie methods
+  async getLapinGenealogy(lapinId: string): Promise<any> {
+    try {
+      // Get the main rabbit
+      const lapin = await this.getLapin(lapinId);
+      if (!lapin) return null;
+
+      // Get parents
+      const pere = lapin.pereId ? await this.getLapin(lapin.pereId) : null;
+      const mere = lapin.mereId ? await this.getLapin(lapin.mereId) : null;
+
+      // Get grandparents (père côté)
+      let grandPerePaternel = null;
+      let grandMerePaternelle = null;
+      if (pere) {
+        grandPerePaternel = pere.pereId ? await this.getLapin(pere.pereId) : null;
+        grandMerePaternelle = pere.mereId ? await this.getLapin(pere.mereId) : null;
+      }
+
+      // Get grandparents (mère côté)
+      let grandPereMaternel = null;
+      let grandMereMaternelle = null;
+      if (mere) {
+        grandPereMaternel = mere.pereId ? await this.getLapin(mere.pereId) : null;
+        grandMereMaternelle = mere.mereId ? await this.getLapin(mere.mereId) : null;
+      }
+
+      // Get children
+      const enfantsPere = await db.select().from(lapins).where(eq(lapins.pereId, lapinId));
+      const enfantsMere = await db.select().from(lapins).where(eq(lapins.mereId, lapinId));
+      const enfants = [...enfantsPere, ...enfantsMere];
+
+      return {
+        lapin,
+        pere,
+        mere,
+        grandParents: {
+          paternel: {
+            pere: grandPerePaternel,
+            mere: grandMerePaternelle
+          },
+          maternel: {
+            pere: grandPereMaternel,
+            mere: grandMereMaternelle
+          }
+        },
+        enfants
+      };
+    } catch (error) {
+      console.error("Error getting lapin genealogy:", error);
+      throw error;
+    }
+  }
+
+  async createVenteAvecGenalogie(venteData: InsertVente): Promise<Vente> {
+    try {
+      // Create the sale first
+      const vente = await this.createVente(venteData);
+      
+      // If there are specific rabbits in the sale (for reproducteurs),
+      // we could add genealogy info to the sale record or generate a report
+      // For now, just return the created sale
+      return vente;
+    } catch (error) {
+      console.error("Error creating vente with genealogy:", error);
+      throw error;
+    }
+  }
+
+  // Planning du personnel methods
+  async getEmployePlanning(startDate?: Date, endDate?: Date): Promise<any[]> {
+    try {
+      // Mock data - in a real implementation, you'd have a planning table
+      const employees = await this.getEmployes();
+      const currentDate = new Date();
+      const start = startDate || new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const end = endDate || new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+      // Generate mock planning data
+      const planning = employees.map(emp => ({
+        id: emp.id + '_planning',
+        employeId: emp.id,
+        employe: emp,
+        dateDebut: start,
+        dateFin: end,
+        heuresParJour: 8,
+        joursTravailles: ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi'],
+        poste: emp.role || 'Éleveur',
+        statut: 'actif'
+      }));
+
+      return planning;
+    } catch (error) {
+      console.error("Error getting employee planning:", error);
+      throw error;
+    }
+  }
+
+  async createEmployePlanning(planning: any): Promise<any> {
+    try {
+      // Mock implementation - in real app, insert into planning table
+      const newPlanning = {
+        id: Date.now().toString(),
+        ...planning,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      return newPlanning;
+    } catch (error) {
+      console.error("Error creating employee planning:", error);
+      throw error;
+    }
+  }
+
+  async updateEmployePlanning(id: string, planning: any): Promise<any> {
+    try {
+      // Mock implementation
+      return {
+        id,
+        ...planning,
+        updatedAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error updating employee planning:", error);
+      throw error;
+    }
+  }
+
+  async deleteEmployePlanning(id: string): Promise<void> {
+    try {
+      // Mock implementation
+      console.log(`Deleting planning ${id}`);
+    } catch (error) {
+      console.error("Error deleting employee planning:", error);
+      throw error;
+    }
+  }
+
+  // Absences methods
+  async getEmployeAbsences(employeId: string): Promise<any[]> {
+    try {
+      // Mock data - in real implementation, you'd have an absences table
+      return [
+        {
+          id: '1',
+          employeId,
+          dateDebut: new Date('2024-01-15'),
+          dateFin: new Date('2024-01-17'),
+          motif: 'Congé maladie',
+          statut: 'approuve',
+          createdAt: new Date('2024-01-10')
+        }
+      ];
+    } catch (error) {
+      console.error("Error getting employee absences:", error);
+      throw error;
+    }
+  }
+
+  async createEmployeAbsence(absence: any): Promise<any> {
+    try {
+      // Mock implementation
+      const newAbsence = {
+        id: Date.now().toString(),
+        ...absence,
+        statut: 'en_attente',
+        createdAt: new Date()
+      };
+      return newAbsence;
+    } catch (error) {
+      console.error("Error creating employee absence:", error);
+      throw error;
+    }
+  }
+
+  async approveEmployeAbsence(id: string, approved: boolean): Promise<any> {
+    try {
+      // Mock implementation
+      return {
+        id,
+        statut: approved ? 'approuve' : 'refuse',
+        updatedAt: new Date()
+      };
+    } catch (error) {
+      console.error("Error approving employee absence:", error);
       throw error;
     }
   }

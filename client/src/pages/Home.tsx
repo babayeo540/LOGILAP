@@ -33,6 +33,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Définition de types pour une meilleure sécurité
 interface DashboardStats {

@@ -37,6 +37,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Généalogie route - récupérer l'arbre généalogique d'un lapin
+  app.get('/api/lapins/:id/genealogy', isAuthenticated, async (req, res) => {
+    try {
+      const genealogy = await storage.getLapinGenealogy(req.params.id);
+      if (!genealogy) {
+        return res.status(404).json({ message: "Lapin not found" });
+      }
+      res.json(genealogy);
+    } catch (error) {
+      console.error("Error fetching lapin genealogy:", error);
+      res.status(500).json({ message: "Failed to fetch lapin genealogy" });
+    }
+  });
+
   app.get('/api/lapins/:id', isAuthenticated, async (req, res) => {
     try {
       const lapin = await storage.getLapin(req.params.id);
@@ -245,6 +259,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Route pour créer une vente avec généalogie
+  app.post('/api/ventes/avec-genealogie', isAuthenticated, async (req, res) => {
+    try {
+      const venteData = insertVenteSchema.parse(req.body);
+      const vente = await storage.createVenteAvecGenalogie(venteData);
+      res.status(201).json(vente);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Validation error", errors: error.errors });
+      }
+      console.error("Error creating vente with genealogy:", error);
+      res.status(500).json({ message: "Failed to create vente with genealogy" });
+    }
+  });
+
   app.post('/api/ventes', isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertVenteSchema.parse(req.body);
@@ -378,6 +407,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting employe:", error);
       res.status(500).json({ message: "Failed to delete employe" });
+    }
+  });
+
+  // Planning du personnel routes
+  app.get('/api/employes/planning', isAuthenticated, async (req, res) => {
+    try {
+      const { startDate, endDate } = req.query;
+      const planning = await storage.getEmployePlanning(
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined
+      );
+      res.json(planning);
+    } catch (error) {
+      console.error("Error fetching employee planning:", error);
+      res.status(500).json({ message: "Failed to fetch employee planning" });
+    }
+  });
+
+  app.post('/api/employes/planning', isAuthenticated, async (req, res) => {
+    try {
+      const planningData = req.body;
+      const planning = await storage.createEmployePlanning(planningData);
+      res.status(201).json(planning);
+    } catch (error) {
+      console.error("Error creating employee planning:", error);
+      res.status(500).json({ message: "Failed to create employee planning" });
+    }
+  });
+
+  app.put('/api/employes/planning/:id', isAuthenticated, async (req, res) => {
+    try {
+      const planningData = req.body;
+      const planning = await storage.updateEmployePlanning(req.params.id, planningData);
+      res.json(planning);
+    } catch (error) {
+      console.error("Error updating employee planning:", error);
+      res.status(500).json({ message: "Failed to update employee planning" });
+    }
+  });
+
+  app.delete('/api/employes/planning/:id', isAuthenticated, async (req, res) => {
+    try {
+      await storage.deleteEmployePlanning(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting employee planning:", error);
+      res.status(500).json({ message: "Failed to delete employee planning" });
+    }
+  });
+
+  // Absences routes
+  app.get('/api/employes/:employeId/absences', isAuthenticated, async (req, res) => {
+    try {
+      const absences = await storage.getEmployeAbsences(req.params.employeId);
+      res.json(absences);
+    } catch (error) {
+      console.error("Error fetching employee absences:", error);
+      res.status(500).json({ message: "Failed to fetch employee absences" });
+    }
+  });
+
+  app.post('/api/employes/:employeId/absences', isAuthenticated, async (req, res) => {
+    try {
+      const absenceData = { ...req.body, employeId: req.params.employeId };
+      const absence = await storage.createEmployeAbsence(absenceData);
+      res.status(201).json(absence);
+    } catch (error) {
+      console.error("Error creating employee absence:", error);
+      res.status(500).json({ message: "Failed to create employee absence" });
+    }
+  });
+
+  app.put('/api/employes/absences/:id/approve', isAuthenticated, async (req, res) => {
+    try {
+      const { approved } = req.body;
+      const absence = await storage.approveEmployeAbsence(req.params.id, approved);
+      res.json(absence);
+    } catch (error) {
+      console.error("Error approving employee absence:", error);
+      res.status(500).json({ message: "Failed to approve employee absence" });
     }
   });
 
